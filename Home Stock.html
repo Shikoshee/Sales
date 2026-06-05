@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Inventra - Stock Taking System</title>
+  <style>
+  body{
+  margin:0;
+  min-height:100vh;
+  font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+  background:
+    radial-gradient(circle at top left,#dbeafe 0%,transparent 35%),
+    radial-gradient(circle at bottom right,#bfdbfe 0%,transparent 35%),
+    linear-gradient(135deg,#eff6ff,#f8fbff);
+  color:#333;
+  overflow-x:hidden;
+}
+
+  header {
+    text-align: center;
+    padding: 60px 20px 20px;
+    color: #0056d6;
+    position: relative;
+    z-index: 1;
+  }
+
+  header h1 {
+    font-size: 3.2rem;
+    font-weight: 700;
+    letter-spacing: 1px;
+    margin-bottom: 10px;
+  }
+
+  header p {
+    font-size: 1.3rem;
+    opacity: 0.9;
+    font-weight: 500;
+  }
+  .container{
+  max-width:340px;   /* was 430px → smaller form */
+  margin:20px auto;
+  background:rgba(255,255,255,0.7);
+  backdrop-filter:blur(18px);
+  padding:22px;      /* was 38px → tighter */
+  border-radius:20px;
+  box-shadow:
+    0 10px 30px rgba(0,0,0,0.08),
+    0 2px 8px rgba(255,255,255,0.4) inset;
+  animation:fadeIn 0.8s ease;
+  border:1px solid rgba(255,255,255,0.4);
+}
+
+  
+  .container h2{
+  margin:0 0 10px 0;
+  color:#0056d6;
+  text-align:center;
+  font-size:1.8rem;
+  letter-spacing:0.5px;
+}
+
+  .form-group {
+    margin: 15px 0;
+    text-align: left;
+  }
+
+  label {
+    font-weight: 600;
+    display: block;
+    margin-bottom: 6px;
+    color: #222;
+  }
+input,
+select{
+  width:90%;        /* better alignment */
+  padding:10px;      /* smaller height */
+  border:1.5px solid rgba(148,163,184,0.6);
+  border-radius:10px;
+  font-size:0.95rem;
+  background:rgba(255,255,255,0.9);
+  transition:0.25s ease;
+}
+input:focus,
+select:focus{
+  border-color:#3b82f6;
+  background:#ffffff;
+  box-shadow:
+    0 0 0 4px rgba(59,130,246,0.15),
+    0 4px 12px rgba(0,0,0,0.08);
+}
+input::placeholder{
+  color:#94a3b8;
+  font-size:14px;
+}
+
+.form-group{
+  margin:12px 0;   /* was 18px */
+}
+
+label{
+  font-size:14px;
+  color:#1e293b;
+  margin-bottom:8px;
+}
+
+  .btn{
+  width:100%;
+  padding:10px;
+  margin-top:15px;
+  border:none;
+  border-radius:12px;
+  background:linear-gradient(135deg,#2563eb,#1d4ed8);
+  color:white;
+  font-size:0.95rem;
+  font-weight:700;
+  cursor:pointer;
+  transition:0.3s ease;
+  box-shadow:0 8px 20px rgba(37,99,235,0.25);
+}
+
+.btn:hover{
+  transform:translateY(-3px);
+  box-shadow:0 12px 24px rgba(37,99,235,0.35);
+}
+
+.btn:active{
+  transform:scale(0.98);
+}
+
+  footer{
+  text-align:center;
+  padding:30px 20px;
+  color:#475569;
+  font-size:14px;
+  font-weight:500;
+}
+
+  /* Smooth fade animation */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .header-logo {
+  width: 100px;       /* adjust size as needed */
+  display: block;
+  margin: 0 auto 15px auto;
+  border-radius: 20px; /* add this line to curve corners */
+}
+ @media(max-width:768px){
+
+header {
+  padding: 15px 20px 5px; /* reduced top space */
+}
+  .logo-card{
+  width:150px;              /* smaller card */
+  margin:auto;
+  padding:18px;
+  border-radius:120px;
+  background:linear-gradient(135deg,#22d3ee,#2563eb);
+  text-align:center;
+  color:white;
+  box-shadow:0 10px 25px rgba(37,99,235,0.2);
+  backdrop-filter:blur(14px);
+  transition:0.35s ease;
+  animation:float 3s ease-in-out infinite;
+}
+
+
+  .logo-card h1{
+    font-size:32px;
+  }
+
+  .container{
+  max-width:340px;   /* was 430px → smaller form */
+  margin:20px auto;
+  background:rgba(255,255,255,0.7);
+  backdrop-filter:blur(18px);
+  padding:22px;      /* was 38px → tighter */
+  border-radius:20px;
+  box-shadow:
+    0 10px 30px rgba(0,0,0,0.08),
+    0 2px 8px rgba(255,255,255,0.4) inset;
+  animation:fadeIn 0.8s ease;
+  border:1px solid rgba(255,255,255,0.4);
+}
+
+} 
+  
+</style>
+
+</head>
+<body>
+
+  <header>
+    
+<style>
+.logo-card{
+  width:150px;
+  margin:auto;
+  padding:28px;
+  border-radius:220px;
+  background:linear-gradient(135deg,#22d3ee,#2563eb);
+  text-align:center;
+  color:white;
+  box-shadow:0 15px 40px rgba(37,99,235,0.25);
+  backdrop-filter:blur(14px);
+  transition:0.35s ease;
+  animation:float 3s ease-in-out infinite;
+}
+
+.logo-card:hover{
+  transform:translateY(-6px) scale(1.02);
+}
+
+.logo-icon{
+  width:70px;               /* smaller icon box */
+  height:70px;
+  margin:auto;
+  border-radius:22px;
+  background:linear-gradient(135deg,#1e1b4b,#4338ca);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  font-size:34px;           /* smaller emoji */
+  position:relative;
+  box-shadow:0 8px 18px rgba(0,0,0,0.18);
+}
+
+.sparkle{
+  position:absolute;
+  top:5px;
+  right:8px;
+  font-size:11px;
+}
+
+.logo-card h1{
+  margin:14px 0 4px;
+  font-size:26px;           /* smaller title */
+  font-weight:800;
+  letter-spacing:1px;
+}
+
+.logo-card p{
+  margin:0;
+  font-size:9px;            /* smaller subtitle */
+  font-weight:600;
+  letter-spacing:1.5px;
+  opacity:0.92;
+}
+
+.subtitle{
+  margin: 0px 0 0px;   /* 👈 reduces gap above and below */
+  font-size: 1.15rem;
+  opacity: 0.9;
+  font-weight: 500;
+  text-align: center;
+}
+
+@keyframes float{
+  0%,100%{
+    transform:translateY(0);
+  }
+  50%{
+    transform:translateY(-6px);
+  }
+}
+
+
+</style>
+  <!-- Cute Icon -->
+  <div class="logo-card">
+
+  <div class="logo-icon">
+    📦
+    <span class="sparkle">✨</span>
+  </div>
+
+  <h1>Inventra</h1>
+
+  <p>STOCK MANAGEMENT SYSTEM</p>
+
+</div>
+
+    <p class="subtitle">Manage your products, sales, and inventory with ease.</p>
+  </header>
+
+  <!-- Login Section -->
+  <div class="container">
+    <h2>Login</h2>
+    <form id="loginForm">
+      <div class="form-group">
+       <label for="email">Email</label>
+<input type="email" id="email" required>
+      </div>
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input type="password" id="password" required>
+      </div>
+      <div class="form-group">
+        <label for="role">Role</label>
+        <select id="role" required>
+          <option value="Admin">Admin</option>
+          <option value="User">User</option>
+        </select>
+      </div>
+      <button class="btn" type="submit">Login</button>
+      <p id="errorMsg" style="color:red;text-align:center;font-weight:bold;margin-top:0px;"></p>
+    </form>    
+    <p style="margin-top:0px; font-size:0.9rem; color:#666;">
+Tip: Enter your <b>Email</b>, <b>Password</b> and select <b>Role</b> to log in.    </p>
+  </div>
+
+  <footer>
+    &copy; 2026 Inventra. All Rights Reserved. 
+    For enqueries contact +254 716 582 301
+  </footer>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    
+const supabaseUrl = "https://quhorqxtzhpuxeujgxfw.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1aG9ycXh0emhwdXhldWpneGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNTI2NzgsImV4cCI6MjA5NTYyODY3OH0._bldtcFHB59obsAsxC7ctKn-EqoQqKnwLTXowo2ppF8";
+
+window.supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+async function syncPendingUsers() {
+  const pending = JSON.parse(localStorage.getItem("pendingUsers")) || [];
+
+  if (pending.length === 0) return;
+
+  for (const user of pending) {
+    const { error } = await window.supabaseClient
+      .from("users")
+      .upsert(user);
+
+    if (error) {
+      console.error(error);
+      return;
+    }
+  }
+
+  localStorage.removeItem("pendingUsers");
+  console.log("✅ Synced to Supabase");
+}
+window.addEventListener("online", syncPendingUsers);
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (navigator.onLine) syncPendingUsers();
+});
+    // ✅ Create default users if not already stored
+    if (!localStorage.getItem("users")) {
+      const defaultUsers = [
+  { email: "moduledevsphere@gmail.com", password: "123456", role: "Admin" },
+  { email: "shiqueshe@gmail.com", password: "user123", role: "User" }
+];
+      localStorage.setItem("users", JSON.stringify(defaultUsers));
+      console.log("✅ Default users created in localStorage.");
+    }
+
+    const loginForm = document.getElementById("loginForm");
+
+    loginForm.addEventListener("submit", function(event) {
+      event.preventDefault();
+
+const email = document.getElementById("email").value.trim().toLowerCase();      const password = document.getElementById("password").value.trim();
+      const role = document.getElementById("role").value;
+      const errorMsg = document.getElementById("errorMsg");
+
+      const users = JSON.parse(localStorage.getItem("users")) || [];
+
+      // ✅ Check user credentials
+      const validUser = users.find(u =>
+  u.email.toLowerCase() === email &&
+  u.password === password &&
+  u.role === role
+);
+      if (validUser) {
+        // Save session in localStorage
+localStorage.setItem("loggedInUser", JSON.stringify({
+  email,
+  role
+}));
+        alert("✅ Login successful!");
+
+        // Redirect based on role
+        if (role === "Admin") {
+          window.location.href = "Stock.html";
+        } else {
+          window.location.href = "user_stock.html";
+        }
+      } else {
+errorMsg.textContent = "❌ Invalid email, password, or role.";      }
+    });
+    function queueUserForSync(user) {
+  const pending = JSON.parse(localStorage.getItem("pendingUsers")) || [];
+  pending.push(user);
+  localStorage.setItem("pendingUsers", JSON.stringify(pending));
+}
+
+
+async function syncPendingUsers() {
+  const pending =
+    JSON.parse(localStorage.getItem("pendingUsers")) || [];
+
+  if (pending.length === 0) return;
+
+  for (const user of pending) {
+    try {
+      const { error } = await supabase
+        .from("users")
+        .upsert(user);
+
+      if (error) throw error;
+    } catch (err) {
+      console.error("Sync failed:", err);
+      return;
+    }
+  }
+
+  localStorage.removeItem("pendingUsers");
+  console.log("✅ Users synced to Supabase");
+}
+document.addEventListener("DOMContentLoaded", () => {
+  if (navigator.onLine) {
+    syncPendingUsers();
+  }
+});
+  </script>
+  
+
+</body>
+
+</html>

@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Create User (Admin Only) - Inventra</title>
+  <style>
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body{
+  font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
+  background:linear-gradient(135deg,#eef2ff,#dbeafe);
+  min-height:100vh;
+  padding:30px 15px;
+  color:#333;
+}
+
+/* Dashboard Button */
+.dashboard-btn{
+  position:fixed;
+  top:20px;
+  left:20px;
+  background:linear-gradient(135deg,#2563eb,#1d4ed8);
+  color:#fff;
+  padding:12px 20px;
+  border-radius:12px;
+  font-weight:600;
+  text-decoration:none;
+  box-shadow:0 4px 10px rgba(0,0,0,0.15);
+  transition:0.3s;
+  z-index:1000;
+}
+
+.dashboard-btn:hover{
+  transform:translateY(-2px);
+  background:linear-gradient(135deg,#1d4ed8,#1e40af);
+}
+
+/* Main Containers */
+.container,
+.user-list{
+  background:#fff;
+  border-radius:20px;
+  padding:30px;
+  box-shadow:0 8px 25px rgba(0,0,0,0.08);
+  margin:auto;
+  margin-bottom:25px;
+}
+
+.container{
+  max-width:450px;
+}
+
+.user-list{
+  max-width:900px;
+}
+
+/* Headings */
+h2{
+  text-align:center;
+  margin-bottom:25px;
+  color:#1e3a8a;
+  font-size:28px;
+}
+
+/* Form */
+.form-group{
+  margin-bottom:20px;
+}
+
+label{
+  display:block;
+  margin-bottom:8px;
+  font-weight:600;
+  color:#374151;
+}
+
+input,
+select{
+  width:100%;
+  padding:14px;
+  border:1px solid #d1d5db;
+  border-radius:12px;
+  font-size:15px;
+  transition:0.3s;
+  background:#f9fafb;
+}
+
+input:focus,
+select:focus{
+  border-color:#2563eb;
+  outline:none;
+  background:#fff;
+  box-shadow:0 0 0 3px rgba(37,99,235,0.15);
+}
+
+/* Buttons */
+.btn{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:12px;
+  background:linear-gradient(135deg,#2563eb,#1d4ed8);
+  color:#fff;
+  font-size:16px;
+  font-weight:600;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+.btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 6px 15px rgba(37,99,235,0.3);
+}
+
+/* Messages */
+.msg{
+  margin-bottom:20px;
+  text-align:center;
+  font-weight:bold;
+  font-size:15px;
+}
+
+.error{
+  color:#dc2626;
+  font-size:14px;
+  margin-top:5px;
+  display:block;
+}
+
+/* Table */
+table{
+  width:100%;
+  border-collapse:collapse;
+  overflow:hidden;
+  border-radius:12px;
+}
+
+th{
+  background:linear-gradient(135deg,#2563eb,#1d4ed8);
+  color:#fff;
+  padding:15px;
+  text-align:left;
+  font-size:15px;
+}
+
+td{
+  padding:14px;
+  border-bottom:1px solid #e5e7eb;
+  background:#fff;
+}
+
+tr:hover td{
+  background:#f8fafc;
+}
+
+/* Action Buttons */
+.action-btn{
+  border:none;
+  padding:8px 14px;
+  border-radius:8px;
+  color:#fff;
+  font-size:14px;
+  cursor:pointer;
+  margin-right:5px;
+  transition:0.3s;
+}
+
+.edit-btn{
+  background:#16a34a;
+}
+
+.edit-btn:hover{
+  background:#15803d;
+}
+
+.delete-btn{
+  background:#dc2626;
+}
+
+.delete-btn:hover{
+  background:#b91c1c;
+}
+
+/* Mobile Responsive */
+@media(max-width:768px){
+
+  body{
+    padding:20px 10px;
+  }
+
+  .container,
+  .user-list{
+    padding:20px;
+  }
+
+  h2{
+    font-size:22px;
+  }
+
+  table{
+    font-size:14px;
+  }
+
+  th,td{
+    padding:10px;
+  }
+
+  .dashboard-btn{
+    padding:10px 16px;
+    font-size:14px;
+  }
+
+}
+
+</style>
+</head>
+<body>
+  <a href="#" class="dashboard-btn" onclick="openAdminDashboard(event)">🏠 Dashboard</a>
+<div class="container">
+  <h2>Create New User</h2>
+
+  <!-- Message display -->
+  <div class="msg" id="msg"></div>
+
+  <form id="createUserForm" onsubmit="return createUser(event)">
+    <div class="form-group">
+      <label for="username">Username:</label>
+      <input type="text" id="username" required>
+    </div>
+
+    <div class="form-group">
+      <label for="password">Password:</label>
+      <input type="password" id="password" required>
+    </div>
+
+    <div class="form-group">
+      <label for="confirm_password">Confirm Password:</label>
+      <input type="password" id="confirm_password" required>
+      <small id="errorMsg" class="error"></small>
+    </div>
+
+    <div class="form-group">
+      <label for="role">Role:</label>
+      <select id="role" required>
+        <option value="User">User</option>
+        <option value="Admin">Admin</option>
+      </select>
+    </div>
+
+    <button type="submit" class="btn">Create User</button>
+  </form>
+</div>
+
+<!-- ✅ List of created users -->
+<div class="user-list">
+  <h2>Existing Users</h2>
+  <table id="userTable">
+    <thead>
+      <tr>
+        <th>Username</th>
+        <th>Role</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="userTableBody"></tbody>
+  </table>
+</div>
+
+
+<script>
+  // ✅ Ensure only admins can access this page
+  const currentUser = JSON.parse(localStorage.getItem('loggedInUser'));
+if (!currentUser || currentUser.role !== 'Admin') {
+  alert('❌ Unauthorized access! Only Admins can create users.');
+  window.location.href = 'Home Stock.html';
+}
+// ✅ Function to render user list
+  // ✅ Render user list
+  function renderUsers() {
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+    const tableBody = document.getElementById('userTableBody');
+    tableBody.innerHTML = '';
+
+    users.forEach((user, index) => {
+      const row = `
+        <tr>
+          <td>${user.username}</td>
+          <td>${user.role}</td>
+          <td>
+            <button class="action-btn edit-btn" onclick="editUser(${index})">Edit</button>
+            <button class="action-btn delete-btn" onclick="deleteUser(${index})">Delete</button>
+          </td>
+        </tr>`;
+      tableBody.innerHTML += row;
+    });
+  }
+
+  // ✅ Create user in localStorage
+  function createUser(event) {
+    event.preventDefault();
+
+    const username = document.getElementById('username').value.trim();
+    const password = document.getElementById('password').value;
+    const confirmPass = document.getElementById('confirm_password').value;
+    const role = document.getElementById('role').value;
+    const msg = document.getElementById('msg');
+    const errorMsg = document.getElementById('errorMsg');
+
+    if (password.length < 6) {
+      errorMsg.textContent = 'Password must be at least 6 characters long.';
+      return false;
+    }
+    if (password !== confirmPass) {
+      errorMsg.textContent = 'Passwords do not match!';
+      return false;
+    }
+    errorMsg.textContent = '';
+
+    let users = JSON.parse(localStorage.getItem('users')) || [];
+
+    if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
+      msg.style.color = 'red';
+      msg.textContent = '⚠️ Username already exists!';
+      return false;
+    }
+
+    const newUser = {
+      id: Date.now(),
+      username,
+      password,
+      role
+    };
+    users.push(newUser);
+    localStorage.setItem('users', JSON.stringify(users));
+
+    msg.style.color = 'green';
+    msg.textContent = '✅ User created successfully!';
+
+    document.getElementById('createUserForm').reset();
+
+    // ✅ Refresh user list instantly
+    renderUsers();
+
+    return false;
+  }
+
+  // ✅ Edit user
+  function editUser(index) {
+    const users = JSON.parse(localStorage.getItem('users')) || [];
+    const user = users[index];
+    const newUsername = prompt('Edit username:', user.username);
+    const newPassword = prompt('Edit password:', user.password);
+    const newRole = prompt('Edit role (Admin/User):', user.role);
+
+    if (newUsername && newPassword && newRole) {
+      users[index].username = newUsername;
+      users[index].password = newPassword;
+      users[index].role = newRole;
+      localStorage.setItem('users', JSON.stringify(users));
+      renderUsers();
+      alert('✅ User updated successfully!');
+    }
+  }
+
+  // ✅ Delete user
+  function deleteUser(index) {
+    if (confirm('Are you sure you want to delete this user?')) {
+      let users = JSON.parse(localStorage.getItem('users')) || [];
+      users.splice(index, 1);
+      localStorage.setItem('users', JSON.stringify(users));
+      renderUsers();
+    }
+  }
+
+  // ✅ Load users when page loads
+  renderUsers();
+  function openAdminDashboard(e) {
+  e.preventDefault();
+  window.location.href = "admin_dashboard.html";
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Sales Report</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+<style>
+
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+body{
+  font-family:Arial,sans-serif;
+  background:#f4f6f9;
+  padding:15px;
+  color:#333;
+}
+
+h1{
+  text-align:center;
+  margin-bottom:20px;
+  color:#007BFF;
+}
+
+.section{
+  background:#fff;
+  padding:15px;
+  border-radius:10px;
+  margin-bottom:20px;
+  box-shadow:0 2px 5px rgba(0,0,0,0.08);
+}
+
+.top-actions{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  justify-content:center;
+  margin-bottom:20px;
+}
+
+.btn{
+  padding:10px 15px;
+  border:none;
+  border-radius:6px;
+  cursor:pointer;
+  font-size:14px;
+  transition:0.3s;
+}
+
+.btn:hover{
+  opacity:0.9;
+}
+
+.btn-backup{
+  background:#28a745;
+  color:white;
+}
+
+.btn-restore{
+  background:#ffc107;
+}
+
+.btn-pdf{
+  background:#007BFF;
+  color:white;
+}
+
+.btn-reset{
+  background:#dc3545;
+  color:white;
+}
+
+.btn-pay{
+  background:#28a745;
+  color:white;
+}
+
+.btn-back{
+  background:#007BFF;
+  color:white;
+  width:100%;
+  margin-top:10px;
+}
+
+.dashboard-btn{
+  position:fixed;
+  top:15px;
+  left:15px;
+  background:#007BFF;
+  color:white;
+  padding:10px 15px;
+  border-radius:6px;
+  text-decoration:none;
+}
+
+.filters{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:10px;
+}
+
+input,
+select{
+  width:100%;
+  padding:10px;
+  border:1px solid #ccc;
+  border-radius:6px;
+}
+
+.table-container{
+  overflow-x:auto;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:10px;
+}
+
+th,
+td{
+  border:1px solid #ddd;
+  padding:10px;
+  text-align:center;
+  font-size:14px;
+}
+
+th{
+  background:#007BFF;
+  color:white;
+}
+
+.status-paid{
+  color:green;
+  font-weight:bold;
+}
+
+.status-unpaid{
+  color:red;
+  font-weight:bold;
+}
+
+.summary-grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+  gap:15px;
+}
+
+.card{
+  background:#f8f9fa;
+  padding:15px;
+  border-radius:8px;
+  border-left:5px solid #007BFF;
+}
+
+.card h3{
+  margin-bottom:10px;
+}
+
+.daily-card{
+  margin-top:10px;
+  padding:10px;
+  background:#eef5ff;
+  border-radius:6px;
+}
+
+.no-data{
+  text-align:center;
+  padding:30px;
+  color:#777;
+}
+
+.summary-toggle{
+  margin-top:10px;
+  padding:8px 12px;
+  border:none;
+  border-radius:6px;
+  background:#007BFF;
+  color:white;
+  cursor:pointer;
+  font-size:14px;
+}
+
+.summary-toggle:hover{
+  opacity:0.9;
+}
+
+.hidden-summary{
+  display:none;
+}
+
+</style>
+</head>
+
+<body>
+
+<a href="#" class="dashboard-btn" onclick="openAdminDashboard(event)">
+🏠 Dashboard
+</a>
+
+<h1>📊 Sales Report</h1>
+
+<!-- ACTION BUTTONS -->
+<div class="top-actions">
+
+  <button class="btn btn-backup" onclick="backupData()">
+    🧾 Backup
+  </button>
+
+  <button class="btn btn-restore"
+    onclick="document.getElementById('restoreFile').click()">
+    🔁 Restore
+  </button>
+
+  <button class="btn btn-pdf" onclick="downloadPDF()">
+    📄 Download PDF
+  </button>
+
+  <button class="btn btn-reset" onclick="resetSystem()">
+    ⚠ Reset System
+  </button>
+
+  <input
+    type="file"
+    id="restoreFile"
+    accept=".json"
+    hidden
+    onchange="restoreData(event)"
+  >
+
+</div>
+
+<!-- FILTERS -->
+<div class="section">
+
+  <div class="filters">
+
+    <input
+      type="text"
+      id="searchInput"
+      placeholder="Search product/customer..."
+    >
+
+    <select id="paymentFilter">
+      <option value="">All Payments</option>
+      <option value="Cash">Cash</option>
+      <option value="Mpesa">Mpesa</option>
+      <option value="Card">Card</option>
+      <option value="Debt">Debt</option>
+    </select>
+
+    <select id="statusFilter">
+      <option value="">All Status</option>
+      <option value="PAID">PAID</option>
+      <option value="PARTIAL">PARTIAL</option>
+    </select>
+
+    <input type="date" id="dateFilter">
+
+  </div>
+
+</div>
+
+<!-- SUMMARY -->
+<div class="section">
+
+  <div class="summary-grid">
+
+    <div class="card">
+      <h3>Total Sales</h3>
+      <p id="totalSales">Ksh 0.00</p>
+    </div>
+
+    <div class="card">
+      <h3>Total Paid</h3>
+      <p id="totalPaid">Ksh 0.00</p>
+    </div>
+
+    <div class="card">
+      <h3>Outstanding Debt</h3>
+      <p id="totalDebt">Ksh 0.00</p>
+    </div>
+
+    <div class="card">
+      <h3>Total Transactions</h3>
+      <p id="totalTransactions">0</p>
+    </div>
+
+  </div>
+
+</div>
+
+<!-- DAILY SUMMARY -->
+<div class="section">
+
+  <h2>📅 Daily Summary</h2>
+
+  <div id="dailySummary"></div>
+
+</div>
+
+<!-- SALES TABLE -->
+<div class="section">
+
+  <div class="table-container">
+
+    <table>
+
+      <thead>
+
+        <tr>
+
+          <th>Receipt</th>
+          <th>Product</th>
+          <th>Customer</th>
+          <th>Qty</th>
+          <th>Total</th>
+          <th>Paid</th>
+          <th>Balance</th>
+          <th>Payment</th>
+          <th>Status</th>
+          <th>Date</th>
+          <th>Action</th>
+
+        </tr>
+
+      </thead>
+
+      <tbody id="salesTableBody"></tbody>
+
+    </table>
+
+  </div>
+
+</div>
+
+<button class="btn btn-back" onclick="goBack()">
+⬅ Back
+</button>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
+  const supabaseUrl = "https://quhorqxtzhpuxeujgxfw.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1aG9ycXh0emhwdXhldWpneGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNTI2NzgsImV4cCI6MjA5NTYyODY3OH0._bldtcFHB59obsAsxC7ctKn-EqoQqKnwLTXowo2ppF8";
+
+const supabaseClient = window.supabase.createClient(
+  supabaseUrl,
+  supabaseKey
+);
+
+let allSales =
+  JSON.parse(localStorage.getItem("allSales")) || [];
+
+allSales.reverse();
+
+function formatMoney(amount){
+
+  return new Intl.NumberFormat('en-KE', {
+    style:'currency',
+    currency:'KES'
+  }).format(amount || 0);
+
+}
+
+function renderSales(data = allSales){
+
+  const tbody =
+    document.getElementById("salesTableBody");
+
+  tbody.innerHTML = "";
+
+  if(!data.length){
+
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="11" class="no-data">
+          No sales found.
+        </td>
+      </tr>
+    `;
+
+    return;
+
+  }
+
+  data.forEach((sale,index) => {
+
+    const statusClass =
+      sale.status === "PAID"
+      ? "status-paid"
+      : "status-unpaid";
+
+    tbody.innerHTML += `
+
+      <tr>
+
+        <td>${sale.receiptNo || "-"}</td>
+
+        <td>${sale.product}</td>
+
+        <td>
+  ${
+    sale.debtor?.trim()
+    || sale.customer?.trim()
+    || "Walk-in Customer"
+  }
+</td>
+
+        <td>${sale.qty}</td>
+
+        <td>${formatMoney(sale.total)}</td>
+
+        <td>${formatMoney(sale.amountPaid)}</td>
+
+        <td>${formatMoney(sale.balance)}</td>
+
+        <td>${sale.payment}</td>
+
+        <td class="${statusClass}">
+          ${sale.status}
+        </td>
+
+        <td>
+          ${new Date(sale.date).toLocaleString()}
+        </td>
+
+        <td>
+
+          ${
+            sale.balance > 0
+
+            ?
+
+            `<button
+              class="btn btn-pay"
+              onclick="markAsPaid(${index})">
+              Mark Paid
+            </button>`
+
+            :
+
+            "-"
+
+          }
+
+        </td>
+
+      </tr>
+
+    `;
+
+  });
+
+}
+
+function updateSummary(data = allSales){
+
+  let totalSales = 0;
+  let totalPaid = 0;
+  let totalDebt = 0;
+
+  const daily = {};
+
+  data.forEach(sale => {
+
+    totalSales += parseFloat(sale.total) || 0;
+
+    totalPaid += parseFloat(sale.amountPaid) || 0;
+
+    totalDebt += parseFloat(sale.balance) || 0;
+
+    const day =
+      new Date(sale.date)
+      .toISOString()
+      .split("T")[0];
+
+    if(!daily[day]){
+
+      daily[day] = {
+        sales:0,
+        paid:0,
+        debt:0
+      };
+
+    }
+
+    daily[day].sales += parseFloat(sale.total) || 0;
+
+    daily[day].paid += parseFloat(sale.amountPaid) || 0;
+
+    daily[day].debt += parseFloat(sale.balance) || 0;
+
+  });
+
+  document.getElementById("totalSales")
+  .innerText = formatMoney(totalSales);
+
+  document.getElementById("totalPaid")
+  .innerText = formatMoney(totalPaid);
+
+  document.getElementById("totalDebt")
+  .innerText = formatMoney(totalDebt);
+
+  document.getElementById("totalTransactions")
+  .innerText = data.length;
+
+  // DAILY SUMMARY
+
+  // DAILY SUMMARY
+
+const dailyContainer =
+  document.getElementById("dailySummary");
+
+dailyContainer.innerHTML = "";
+
+const sortedDays = Object.keys(daily)
+.sort((a,b) => new Date(b)-new Date(a));
+
+if(sortedDays.length){
+
+  // Show latest/current day only
+  const latestDay = sortedDays[0];
+
+  dailyContainer.innerHTML += `
+
+    <div class="daily-card">
+
+      <strong>${latestDay} (Current)</strong>
+
+      <p>
+        Sales:
+        ${formatMoney(daily[latestDay].sales)}
+      </p>
+
+      <p>
+        Paid:
+        ${formatMoney(daily[latestDay].paid)}
+      </p>
+
+      <p>
+        Debt:
+        ${formatMoney(daily[latestDay].debt)}
+      </p>
+
+    </div>
+
+  `;
+
+  // Button to expand all reports
+  if(sortedDays.length > 1){
+
+    dailyContainer.innerHTML += `
+
+      <button
+        class="summary-toggle"
+        onclick="toggleDailyReports()"
+        id="toggleBtn"
+      >
+        + Show All Reports
+      </button>
+
+      <div id="allDailyReports" class="hidden-summary"></div>
+
+    `;
+
+    const allReports =
+      document.getElementById("allDailyReports");
+
+    sortedDays.slice(1).forEach(day => {
+
+      allReports.innerHTML += `
+
+        <div class="daily-card">
+
+          <strong>${day}</strong>
+
+          <p>
+            Sales:
+            ${formatMoney(daily[day].sales)}
+          </p>
+
+          <p>
+            Paid:
+            ${formatMoney(daily[day].paid)}
+          </p>
+
+          <p>
+            Debt:
+            ${formatMoney(daily[day].debt)}
+          </p>
+
+        </div>
+
+      `;
+
+    });
+
+  }
+
+}
+}
+function toggleDailyReports(){
+
+  const reports =
+    document.getElementById("allDailyReports");
+
+  const btn =
+    document.getElementById("toggleBtn");
+
+  if(reports.classList.contains("hidden-summary")){
+
+    reports.classList.remove("hidden-summary");
+
+    btn.innerHTML = "− Hide Reports";
+
+  } else {
+
+    reports.classList.add("hidden-summary");
+
+    btn.innerHTML = "+ Show All Reports";
+
+  }
+
+}
+
+function filterSales(){
+
+  const search =
+    document.getElementById("searchInput")
+    .value
+    .toLowerCase();
+
+  const payment =
+    document.getElementById("paymentFilter")
+    .value;
+
+  const status =
+    document.getElementById("statusFilter")
+    .value;
+
+  const date =
+    document.getElementById("dateFilter")
+    .value;
+
+  const filtered = allSales.filter(sale => {
+
+    const matchesSearch =
+
+      sale.product?.toLowerCase().includes(search)
+
+      ||
+
+      sale.customer?.toLowerCase().includes(search);
+
+    const matchesPayment =
+      !payment || sale.payment === payment;
+
+    const matchesStatus =
+      !status || sale.status === status;
+
+    const matchesDate =
+      !date ||
+      new Date(sale.date)
+      .toISOString()
+      .split("T")[0] === date;
+
+    return (
+      matchesSearch &&
+      matchesPayment &&
+      matchesStatus &&
+      matchesDate
+    );
+
+  });
+
+  renderSales(filtered);
+
+  updateSummary(filtered);
+
+}
+
+document.getElementById("searchInput")
+.addEventListener("input", filterSales);
+
+document.getElementById("paymentFilter")
+.addEventListener("change", filterSales);
+
+document.getElementById("statusFilter")
+.addEventListener("change", filterSales);
+
+document.getElementById("dateFilter")
+.addEventListener("change", filterSales);
+
+function markAsPaid(index){
+
+  const sale = allSales[index];
+
+  const remainingBalance =
+    parseFloat(sale.balance) || 0;
+
+  if(remainingBalance <= 0){
+
+    alert("No outstanding balance.");
+
+    return;
+  }
+
+  // Ask amount customer is paying
+  const paymentInput = prompt(
+    `Outstanding balance is Ksh ${remainingBalance}\n\nEnter amount paid:`
+  );
+
+  if(paymentInput === null) return;
+
+  const paymentAmount =
+    parseFloat(paymentInput);
+
+  // Validation
+  if(
+    isNaN(paymentAmount) ||
+    paymentAmount <= 0
+  ){
+
+    alert("Enter a valid payment amount.");
+
+    return;
+  }
+
+  if(paymentAmount > remainingBalance){
+
+    alert("Payment cannot exceed balance.");
+
+    return;
+  }
+
+  // Dates
+  const today =
+    new Date().toISOString().split("T")[0];
+
+  const saleDate =
+    new Date(sale.date).toISOString().split("T")[0];
+
+  // Update original sale
+  sale.amountPaid =
+    (parseFloat(sale.amountPaid) || 0)
+    + paymentAmount;
+
+  sale.balance =
+    remainingBalance - paymentAmount;
+
+  // Save cleared amount
+  sale.clearedAmount =
+    (parseFloat(sale.clearedAmount) || 0)
+    + paymentAmount;
+
+  sale.clearedDate =
+    new Date().toISOString();
+
+  // Update status
+  if(sale.balance <= 0){
+
+    sale.balance = 0;
+
+    sale.status = "PAID";
+
+  } else {
+
+    sale.status = "PARTIAL";
+  }
+
+  // ✅ Create separate payment record
+  // ONLY if payment happens on another day
+  if(today !== saleDate){
+
+    const debtPayment = {
+  receiptNo: crypto.randomUUID(), // ✅ ALWAYS UNIQUE
+  originalReceiptNo: sale.receiptNo, // optional tracking
+
+  product: sale.product,
+  customer: sale.customer || sale.debtor || "Walk-in Customer",
+  debtor: sale.debtor || sale.customer || "Walk-in Customer",
+
+  qty: 0,
+  total: paymentAmount,
+  amountPaid: paymentAmount,
+  balance: 0,
+
+  payment: "Debt Clearance",
+  status: "PAID",
+
+  date: new Date().toISOString(),
+  clearedDate: new Date().toISOString()
+};
+
+queueDebtsSync(debtPayment);
+  }
+  // Save
+  localStorage.setItem(
+    "allSales",
+    JSON.stringify(allSales)
+  );
+  queueSaleForSync(sale);
+
+  renderSales();
+
+  updateSummary();
+
+  if(sale.balance > 0){
+
+    alert(
+      `✅ Partial payment recorded.\nRemaining balance: Ksh ${sale.balance}`
+    );
+
+  } else {
+
+    alert("✅ Debt fully cleared!");
+  }
+  }
+
+function downloadPDF(){
+
+  const element = document.body;
+
+  const opt = {
+
+    margin:0.5,
+
+    filename:
+      `Sales_Report_${
+        new Date()
+        .toISOString()
+        .split("T")[0]
+      }.pdf`,
+
+    image:{
+      type:'jpeg',
+      quality:0.98
+    },
+
+    html2canvas:{
+      scale:2
+    },
+
+    jsPDF:{
+      unit:'in',
+      format:'letter',
+      orientation:'landscape'
+    }
+
+  };
+
+  html2pdf()
+  .set(opt)
+  .from(element)
+  .save();
+
+}
+
+function backupData(){
+
+  const blob = new Blob(
+    [JSON.stringify(allSales)],
+    {type:"application/json"}
+  );
+
+  const a = document.createElement("a");
+
+  a.href = URL.createObjectURL(blob);
+
+  a.download =
+    `sales_backup_${
+      new Date()
+      .toISOString()
+      .split("T")[0]
+    }.json`;
+
+  a.click();
+
+}
+
+function restoreData(event){
+
+  const file = event.target.files[0];
+
+  if(!file) return;
+
+  const reader = new FileReader();
+
+  reader.onload = e => {
+
+    try{
+
+      const restored =
+        JSON.parse(e.target.result);
+
+      if(Array.isArray(restored)){
+
+        localStorage.setItem(
+          "allSales",
+          JSON.stringify(restored)
+        );
+
+        allSales = restored.reverse();
+
+        renderSales();
+
+        updateSummary();
+
+        alert("✅ Restored successfully!");
+
+      }
+
+    } catch {
+
+      alert("❌ Invalid backup file.");
+
+    }
+
+  };
+
+  reader.readAsText(file);
+
+}
+
+function resetSystem(){
+
+  const confirmReset =
+    confirm("Delete ALL system data?");
+
+  if(!confirmReset) return;
+
+  const finalConfirm =
+    prompt("Type DELETE to continue:");
+
+  if(finalConfirm !== "DELETE"){
+
+    alert("Reset cancelled.");
+
+    return;
+
+  }
+
+  localStorage.removeItem("products");
+
+  localStorage.removeItem("allSales");
+
+  localStorage.removeItem("sellIndices");
+
+  alert("✅ System reset successful!");
+
+  window.location.href = "Home Stock.html";
+}
+
+
+renderSales();
+
+updateSummary();
+
+
+function goBack(){
+
+  const user =
+    JSON.parse(localStorage.getItem("loggedInUser"));
+
+  if(user?.role === "Admin"){
+
+    window.location.href = "Stock.html";
+
+  } else {
+
+    window.location.href = "user_stock.html";
+
+  }
+
+}
+
+function openAdminDashboard(e) {
+  e.preventDefault();
+
+  // Get logged in user data
+  const userData = JSON.parse(localStorage.getItem("loggedInUser"));
+
+  // Check role and redirect
+  if (userData?.role === "User") {
+
+    window.location.href = "user_dashboard.html";
+
+  } else if (userData?.role === "Admin") {
+
+    window.location.href = "admin_dashboard.html";
+
+  } else {
+
+    alert("Session expired. Please login again.");
+
+    window.location.href = "login.html";
+
+  }
+}
+
+
+function queueSaleForSync(sale) {
+  const pending =
+    JSON.parse(localStorage.getItem("pendingSales")) || [];
+
+  pending.push(sale);
+
+  localStorage.setItem(
+    "pendingSales",
+    JSON.stringify(pending)
+  );
+}
+
+
+window.addEventListener(
+  "online",
+  syncPendingSales
+);
+
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+
+    if (navigator.onLine) {
+      syncPendingSales();
+    }
+
+  }
+);
+
+  
+async function syncPendingSales() {
+
+  const pending =
+    JSON.parse(localStorage.getItem("pendingSales")) || [];
+
+  if (!pending.length) return;
+
+  // REMOVE duplicates BEFORE sending
+  const unique = [];
+  const seen = new Set();
+
+  for (const item of pending) {
+    if (seen.has(item.receiptNo)) continue;
+    seen.add(item.receiptNo);
+    unique.push(item);
+  }
+
+  const { error } =
+    await supabaseClient
+      .from("sales")
+      .upsert(unique, { onConflict: "receiptNo" });
+
+  if (error) {
+    console.error("Sales Sync Error:", error);
+    return;
+  }
+
+  localStorage.removeItem("pendingSales");
+
+  console.log("✅ Sales synced successfully");
+}
+
+async function syncAllLocalSales() {
+
+  let sales =
+    JSON.parse(localStorage.getItem("allSales")) || [];
+
+  if (!sales.length) return;
+
+  // ✅ REMOVE duplicates
+  const seen = new Set();
+  sales = sales.filter(item => {
+    if (seen.has(item.receiptNo)) return false;
+    seen.add(item.receiptNo);
+    return true;
+  });
+
+  const { error } =
+    await supabaseClient
+      .from("sales")
+      .upsert(sales, { onConflict: "receiptNo" });
+
+  if (error) {
+    console.error("Full sync error:", error);
+  } else {
+    console.log("✅ Existing sales synced");
+  }
+}
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+
+    if (navigator.onLine) {
+
+      syncAllLocalSales();
+      syncPendingSales();
+
+    }
+
+  }
+);
+async function syncDebtsToSupabase() {
+  const itemsPayload = cartItems.map(item => ({
+  receiptNo,
+  product: item.product,
+  qty: item.qty,
+  price: item.price,
+  total: item.qty * item.price
+}));
+
+await supabase.from("sale_items").insert(itemsPayload);
+
+  const pending =
+    JSON.parse(localStorage.getItem("pendingDebtsSync")) || [];
+
+  if (!pending.length) return;
+
+  const { error } =
+    await supabaseClient
+      .from("debts")
+      .upsert(pending, { onConflict: "receiptNo" });
+
+  if (error) {
+    console.error("Debt sync error:", error);
+    return;
+  }
+
+  localStorage.removeItem("pendingDebtsSync");
+
+  console.log("✅ Debts synced");
+}
+function dedupeByReceiptNo(list) {
+  const seen = new Set();
+  return list.filter(item => {
+    if (seen.has(item.receiptNo)) return false;
+    seen.add(item.receiptNo);
+    return true;
+  });
+}
+
+</script>
+
+</body>
+</html>

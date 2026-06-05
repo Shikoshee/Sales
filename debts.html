@@ -1,0 +1,939 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Debts Report</title>
+
+  <style>
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+    }
+
+    :root{
+      --primary:#dc3545;
+      --primary-dark:#b02a37;
+      --secondary:#0d6efd;
+      --success:#198754;
+      --success-dark:#157347;
+      --danger:#dc3545;
+      --bg:#f4f6f9;
+      --card:#ffffff;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --border:#e5e7eb;
+      --shadow:0 10px 25px rgba(0,0,0,0.08);
+      --radius:14px;
+    }
+
+    body{
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background:var(--bg);
+      color:var(--text);
+      padding:20px;
+    }
+
+    .container{
+      max-width:1400px;
+      margin:auto;
+    }
+
+    /* HEADER */
+    .topbar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      flex-wrap:wrap;
+      gap:15px;
+      margin-bottom:25px;
+    }
+
+    .title-area h1{
+      font-size:2rem;
+      color:var(--primary);
+      margin-bottom:5px;
+    }
+
+    .title-area p{
+      color:var(--muted);
+      font-size:.95rem;
+    }
+
+    .top-actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+    }
+
+    .btn{
+      border:none;
+      cursor:pointer;
+      padding:12px 18px;
+      border-radius:10px;
+      text-decoration:none;
+      font-weight:600;
+      transition:.25s ease;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+
+    .btn-dashboard{
+      background:var(--secondary);
+      color:#fff;
+    }
+
+    .btn-dashboard:hover{
+      background:#0b5ed7;
+      transform:translateY(-2px);
+    }
+
+    .btn-reset{
+      background:var(--danger);
+      color:#fff;
+    }
+
+    .btn-reset:hover{
+      background:var(--primary-dark);
+      transform:translateY(-2px);
+    }
+
+    .btn-back{
+      background:#111827;
+      color:#fff;
+    }
+
+    .btn-back:hover{
+      background:#000;
+      transform:translateY(-2px);
+    }
+
+    /* SUMMARY CARDS */
+    .summary-grid{
+      display:grid;
+      grid-template-columns:repeat(auto-fit,minmax(240px,1fr));
+      gap:20px;
+      margin-bottom:25px;
+    }
+
+    .card{
+      background:var(--card);
+      padding:22px;
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+    }
+
+    .summary-card h3{
+      font-size:.95rem;
+      color:var(--muted);
+      margin-bottom:10px;
+    }
+
+    .summary-card .amount{
+      font-size:2rem;
+      font-weight:700;
+    }
+
+    .danger-text{
+      color:var(--danger);
+    }
+
+    .success-text{
+      color:var(--success);
+    }
+
+    /* SEARCH */
+    .search-box{
+      background:var(--card);
+      padding:18px;
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      margin-bottom:20px;
+    }
+
+    .search-box input{
+      width:100%;
+      padding:14px;
+      border:1px solid var(--border);
+      border-radius:10px;
+      font-size:1rem;
+      outline:none;
+      transition:.2s;
+    }
+
+    .search-box input:focus{
+      border-color:var(--secondary);
+      box-shadow:0 0 0 4px rgba(13,110,253,.1);
+    }
+
+    /* TABLE */
+    .table-card{
+      background:var(--card);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .table-wrapper{
+      overflow-x:auto;
+    }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      min-width:1100px;
+    }
+
+    thead{
+      background:var(--primary);
+      color:#fff;
+    }
+
+    th, td{
+      padding:15px;
+      text-align:center;
+      border-bottom:1px solid var(--border);
+      font-size:.95rem;
+    }
+
+    tbody tr{
+      transition:.2s;
+    }
+
+    tbody tr:hover{
+      background:#f9fafb;
+    }
+
+    .badge{
+      padding:7px 12px;
+      border-radius:50px;
+      font-size:.8rem;
+      font-weight:700;
+      display:inline-block;
+    }
+
+    .badge-unpaid{
+      background:#ffe5e8;
+      color:#b42318;
+    }
+
+    .badge-paid{
+      background:#d1fadf;
+      color:#067647;
+    }
+
+    .btn-pay{
+      background:var(--success);
+      color:#fff;
+      padding:10px 14px;
+      border:none;
+      border-radius:8px;
+      cursor:pointer;
+      font-weight:600;
+      transition:.2s;
+    }
+
+    .btn-pay:hover{
+      background:var(--success-dark);
+    }
+
+    .empty-state{
+      text-align:center;
+      padding:50px 20px;
+      color:var(--muted);
+      font-size:1.1rem;
+    }
+
+    .footer-actions{
+      margin-top:25px;
+      display:flex;
+      justify-content:center;
+    }
+
+    @media(max-width:768px){
+
+      body{
+        padding:15px;
+      }
+
+      .topbar{
+        flex-direction:column;
+        align-items:flex-start;
+      }
+
+      .title-area h1{
+        font-size:1.6rem;
+      }
+
+      .summary-card .amount{
+        font-size:1.6rem;
+      }
+
+      th, td{
+        padding:12px;
+        font-size:.85rem;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="topbar">
+
+    <div class="title-area">
+      <h1>📋 Outstanding Debts</h1>
+      <p>Track unpaid balances and cleared debt records</p>
+    </div>
+
+    <div class="top-actions">
+      <a href="#" class="btn btn-dashboard" onclick="openAdminDashboard(event)">
+        🏠 Dashboard
+      </a>
+
+      <button class="btn btn-reset" onclick="resetSystem()">
+        ⚠ Reset System
+      </button>
+    </div>
+
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="summary-grid">
+
+    <div class="card summary-card">
+      <h3>Total Unpaid Debts</h3>
+      <div class="amount danger-text" id="totalDebt">
+        Ksh 0.00
+      </div>
+    </div>
+
+    <div class="card summary-card">
+      <h3>Total Cleared Debts</h3>
+      <div class="amount success-text" id="totalCleared">
+        Ksh 0.00
+      </div>
+    </div>
+
+    <div class="card summary-card">
+      <h3>Total Debtors</h3>
+      <div class="amount" id="totalDebtors">
+        0
+      </div>
+    </div>
+
+  </div>
+
+  <!-- SEARCH -->
+  <div class="search-box">
+    <input
+      type="text"
+      id="searchDebtor"
+      placeholder="🔍 Search by debtor name..."
+      oninput="renderDebts()"
+    />
+  </div>
+
+  <!-- TABLE -->
+  <div class="table-card">
+
+    <div class="table-wrapper">
+
+      <div id="debtContainer"></div>
+
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer-actions">
+    <a href="Stock.html" class="btn btn-back">
+      ⬅ Back to Stock
+    </a>
+  </div>
+
+</div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<script>
+
+  const supabaseUrl = "https://quhorqxtzhpuxeujgxfw.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1aG9ycXh0emhwdXhldWpneGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNTI2NzgsImV4cCI6MjA5NTYyODY3OH0._bldtcFHB59obsAsxC7ctKn-EqoQqKnwLTXowo2ppF8";
+
+const supabaseClient = window.supabase.createClient(
+  supabaseUrl,
+  supabaseKey
+);
+
+  let allSales = JSON.parse(localStorage.getItem("allSales")) || [];
+
+  renderDebts();
+  updateDebtTotals();
+
+  // Render debts table
+  function renderDebts() {
+
+    const searchValue =
+      document.getElementById("searchDebtor")?.value.toLowerCase() || "";
+
+    const debts = allSales.filter(s => {
+
+  // Unpaid debts
+  const hasDebt =
+    (parseFloat(s.balance) || 0) > 0;
+
+  // Cleared debts
+  const wasCleared =
+    s.status === "PAID" &&
+    s.clearedDate;
+
+  const debtorName =
+    (s.debtor || "").toLowerCase();
+
+  // Show both unpaid and paid debts
+  return (
+    (hasDebt || wasCleared) &&
+    debtorName.includes(searchValue)
+  );
+
+});
+
+    if (!debts.length) {
+
+      document.getElementById("debtContainer").innerHTML = `
+        <div class="empty-state">
+          📭 No debts recorded.
+        </div>
+      `;
+
+      return;
+    }
+
+    let debtHTML = `
+      <table>
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Price Each</th>
+            <th>Qty</th>
+            <th>Total</th>
+            <th>Balance</th>
+            <th>Payment</th>
+            <th>Debtor</th>
+            <th>Sale Date</th>
+            <th>Status</th>
+            <th>Cleared Date</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+
+        <tbody>
+    `;
+
+    debts.forEach((d, index) => {
+
+
+        const status =
+  d.balance > 0
+  ? "PARTIAL"
+  : "PAID";
+
+      const clearedDate = d.clearedDate || "-";
+
+      debtHTML += `
+        <tr>
+
+          <td>${d.product}</td>
+
+          <td>Ksh ${Number(d.price || 0).toFixed(2)}</td>
+
+          <td>${d.qty}</td>
+
+          <td>Ksh ${Number(d.total || 0).toFixed(2)}</td>
+
+          <td class="${
+  (parseFloat(d.balance) || 0) > 0
+  ? 'danger-text'
+  : 'success-text'
+}">
+  <strong>
+    Ksh ${Number(d.balance || 0).toFixed(2)}
+  </strong>
+</td>
+          <td>${d.payment}</td>
+
+          <td>${d.debtor || "N/A"}</td>
+
+          <td>
+  ${
+    new Date(d.date).toLocaleDateString()
+  }
+  &nbsp;&nbsp;
+  ${
+    new Date(d.date).toLocaleTimeString()
+  }
+</td>
+
+          <td>
+            ${
+  status === "PARTIAL"
+  ? `<span class="badge badge-unpaid">PARTIAL</span>`
+  : `<span class="badge badge-paid">PAID</span>`
+}
+          </td>
+
+          <td>
+  ${
+    d.clearedDate
+    ? new Date(d.clearedDate).toLocaleString()
+    : "-"
+  }
+</td>
+
+<td>
+
+  ${
+    (parseFloat(d.balance) || 0) > 0
+
+    ?
+
+    `<button
+      class="btn-pay"
+      onclick="markAsPaid(${index})">
+      Mark Paid
+    </button>`
+
+    :
+
+    "-"
+
+  }
+
+</td>
+        </tr>
+      `;
+    });
+
+    debtHTML += `
+        </tbody>
+      </table>
+    `;
+
+    document.getElementById("debtContainer").innerHTML = debtHTML;
+  }
+
+  // Mark debt as paid
+  function markAsPaid(index){
+
+  const searchValue =
+    document.getElementById("searchDebtor")
+    ?.value
+    .toLowerCase() || "";
+
+  const debts = allSales.filter(s => {
+
+    const hasDebt =
+      (parseFloat(s.balance) || 0) > 0;
+
+    const wasCleared =
+      s.status === "PAID" &&
+      s.clearedDate;
+
+    const debtorName =
+      (s.debtor || "").toLowerCase();
+
+    return (
+      (hasDebt || wasCleared) &&
+      debtorName.includes(searchValue)
+    );
+
+  });
+
+  const sale = debts[index];
+
+  if(!sale) return;
+
+  const originalIndex = allSales.findIndex(s =>
+
+    s.product === sale.product &&
+    s.date === sale.date &&
+    s.debtor === sale.debtor
+
+  );
+
+  if(originalIndex === -1) return;
+
+  const currentSale =
+    allSales[originalIndex];
+
+  const remainingBalance =
+    parseFloat(currentSale.balance) || 0;
+
+  if(remainingBalance <= 0){
+
+    alert("No outstanding balance.");
+
+    return;
+  }
+
+  // Ask amount customer is paying
+  const paymentInput = prompt(
+    `Outstanding balance is Ksh ${remainingBalance}\n\nEnter amount paid:`
+  );
+
+  if(paymentInput === null) return;
+
+  const paymentAmount =
+    parseFloat(paymentInput);
+
+  // Validation
+  if(
+    isNaN(paymentAmount) ||
+    paymentAmount <= 0
+  ){
+
+    alert("Enter a valid payment amount.");
+
+    return;
+  }
+
+  if(paymentAmount > remainingBalance){
+
+    alert("Payment cannot exceed balance.");
+
+    return;
+  }
+
+  // Dates
+  const today =
+    new Date().toISOString().split("T")[0];
+
+  const saleDate =
+    new Date(currentSale.date)
+    .toISOString()
+    .split("T")[0];
+
+  // Update original sale
+  currentSale.amountPaid =
+    (parseFloat(currentSale.amountPaid) || 0)
+    + paymentAmount;
+
+  currentSale.balance =
+    remainingBalance - paymentAmount;
+
+  // Save cleared amount
+  currentSale.clearedAmount =
+    (parseFloat(currentSale.clearedAmount) || 0)
+    + paymentAmount;
+
+  currentSale.clearedDate =
+    new Date().toISOString();
+
+  // Status update
+  if(currentSale.balance <= 0){
+
+    currentSale.balance = 0;
+
+    currentSale.status = "PAID";
+
+  } else {
+
+    currentSale.status = "PARTIAL";
+  }
+
+  // Create separate transaction
+  // ONLY if payment made on different day
+  if(today !== saleDate){
+
+    const debtPayment = {
+
+      receiptNo: currentSale.receiptNo,
+
+      product: currentSale.product,
+
+      customer:
+        currentSale.customer ||
+        currentSale.debtor ||
+        "Walk-in Customer",
+
+      debtor:
+        currentSale.debtor ||
+        currentSale.customer ||
+        "Walk-in Customer",
+
+      qty: 0,
+
+      total: paymentAmount,
+
+      amountPaid: paymentAmount,
+
+      balance: 0,
+
+      payment: "Debt Clearance",
+
+      status: "PAID",
+
+      date: new Date().toISOString(),
+
+      clearedDate: new Date().toISOString()
+
+    };
+
+    allSales.unshift(debtPayment);
+  }
+
+  // Save
+  localStorage.setItem(
+    "allSales",
+    JSON.stringify(allSales)
+  );
+
+  renderDebts();
+
+  updateDebtTotals();
+
+  if(currentSale.balance > 0){
+
+    alert(
+      `✅ Partial payment recorded.\nRemaining balance: Ksh ${currentSale.balance}`
+    );
+
+  } else {
+
+    alert("✅ Debt fully cleared!");
+  }
+
+}
+  // Update summary
+  // Update summary
+function updateDebtTotals() {
+
+  let totalDebt = 0;
+  let totalCleared = 0;
+
+  const debtors = new Set();
+
+  allSales.forEach(s => {
+
+    const balance =
+      parseFloat(s.balance) || 0;
+
+    // Outstanding debt
+    if(balance > 0){
+
+      totalDebt += balance;
+
+      if(s.debtor){
+        debtors.add(s.debtor);
+      }
+
+    }
+
+    // ✅ Count ALL cleared amounts
+    // including PARTIAL and PAID
+    totalCleared +=
+      parseFloat(s.clearedAmount) || 0;
+
+  });
+
+  document.getElementById("totalDebt").innerText =
+    `Ksh ${totalDebt.toFixed(2)}`;
+
+  document.getElementById("totalCleared").innerText =
+    `Ksh ${totalCleared.toFixed(2)}`;
+
+  document.getElementById("totalDebtors").innerText =
+    debtors.size;
+}
+
+  // Dynamic back button
+  document.addEventListener("DOMContentLoaded", () => {
+
+    const loggedInUser =
+      JSON.parse(localStorage.getItem("loggedInUser"));
+
+    const backBtn =
+      document.querySelector(".btn-back");
+
+    if (loggedInUser && backBtn) {
+
+      if (loggedInUser.role === "User") {
+
+        backBtn.href = "user_stock.html";
+
+      } else if (loggedInUser.role === "Admin") {
+
+        backBtn.href = "Stock.html";
+      }
+    }
+  });
+
+  // Sync tabs
+  window.addEventListener("storage", (event) => {
+
+    if (event.key === "allSales") {
+
+      allSales =
+        JSON.parse(localStorage.getItem("allSales")) || [];
+
+      renderDebts();
+      updateDebtTotals();
+    }
+  });
+
+  // Open dashboard
+  function openAdminDashboard(e) {
+
+    e.preventDefault();
+
+    const userData =
+      JSON.parse(localStorage.getItem("loggedInUser"));
+
+    if (userData?.role === "User") {
+
+      window.location.href = "user_dashboard.html";
+
+    } else if (userData?.role === "Admin") {
+
+      window.location.href = "admin_dashboard.html";
+
+    } else {
+
+      alert("Session expired. Please login again.");
+
+      window.location.href = "login.html";
+    }
+  }
+
+  // Reset system
+  function resetSystem() {
+
+    const confirmReset = confirm(
+      "⚠ This will delete ALL data.\nAre you sure?"
+    );
+
+    if (!confirmReset) return;
+
+    const finalConfirm =
+      prompt("Type DELETE to confirm:");
+
+    if (finalConfirm !== "DELETE") {
+
+      alert("❌ Reset cancelled.");
+      return;
+    }
+
+    localStorage.removeItem("products");
+    localStorage.removeItem("allSales");
+    localStorage.removeItem("sellIndices");
+    localStorage.removeItem("loggedInUser");
+
+    alert("✅ System reset successful!");
+
+    window.location.href = "Home Stock.html";
+  }
+
+async function forceSyncAllSalesToSupabase() {
+  let sales = JSON.parse(localStorage.getItem("allSales")) || [];
+
+  if (!sales.length) return;
+
+  // 1. Remove duplicates by receiptNo (important)
+  const seen = new Set();
+  const uniqueSales = [];
+
+  for (const s of sales) {
+    if (seen.has(s.receiptNo)) continue;
+    seen.add(s.receiptNo);
+    uniqueSales.push(s);
+  }
+
+  // 2. Push ALL local sales to Supabase (not partial sync)
+  const { error } = await supabaseClient
+    .from("sales")
+    .upsert(uniqueSales, {
+      onConflict: "receiptNo" // keeps your receiptNo logic intact
+    });
+
+  if (error) {
+    console.error("Full Sync Error:", error);
+  } else {
+    console.log("✅ Full localStorage → Supabase sync complete");
+  }
+}
+window.addEventListener("online", () => {
+  forceSyncAllSalesToSupabase();
+});
+document.addEventListener("DOMContentLoaded", () => {
+  if (navigator.onLine) {
+    forceSyncAllSalesToSupabase();
+  }
+});
+async function forceSyncAllDebtsToSupabase() {
+
+  let sales = JSON.parse(localStorage.getItem("allSales")) || [];
+
+  if (!sales.length) return;
+
+  const map = new Map();
+
+for (const s of sales) {
+  const key = s.receiptNo;
+
+  if (!key) continue;
+
+  const existing = map.get(key);
+
+  // Keep the MOST UPDATED version (priority rules)
+  if (!existing) {
+    map.set(key, s);
+  } else {
+    // prefer PAID over PARTIAL
+    if (s.status === "PAID") {
+      map.set(key, s);
+    }
+  }
+}
+
+const debts = Array.from(map.values()).filter(s =>
+  (parseFloat(s.balance) || 0) > 0 ||
+  s.status === "PARTIAL" ||
+  s.clearedAmount
+);
+
+  if (!debts.length) {
+    console.log("No debts to sync");
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("debts")
+    .upsert(debts, {
+      onConflict: "receiptNo"
+    });
+
+  if (error) {
+    console.error("Debt Sync Error:", error);
+  } else {
+    console.log("✅ Debts synced to Supabase");
+  }
+}
+document.addEventListener("DOMContentLoaded", () => {
+  if (navigator.onLine) {
+    forceSyncAllDebtsToSupabase();
+  }
+});
+
+window.addEventListener("online", () => {
+  forceSyncAllDebtsToSupabase();
+});
+
+</script>
+
+</body>
+</html>

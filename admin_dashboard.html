@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Inventra - Admin Dashboard</title>
+
+  <style>
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family: Arial, sans-serif;
+    }
+
+    body{
+      background: linear-gradient(135deg, #edf4ff, #dff6ff);
+      min-height:100vh;
+      padding:20px;
+    }
+
+    /* Header */
+
+    .header{
+      text-align:center;
+      margin-bottom:40px;
+    }
+
+    .header h1{
+      color:#007BFF;
+      font-size:3rem;
+      margin-bottom:10px;
+    }
+
+    .header p{
+      color:#555;
+      font-size:1.1rem;
+    }
+
+    /* Top Info Bar */
+
+    .top-bar{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      margin-bottom:30px;
+      flex-wrap:wrap;
+      gap:15px;
+    }
+
+    .welcome-box{
+      background:white;
+      padding:12px 18px;
+      border-radius:10px;
+      box-shadow:0 3px 10px rgba(0,0,0,0.08);
+      color:#333;
+      font-weight:bold;
+    }
+
+    .logout-btn{
+      background:#dc3545;
+      color:white;
+      padding:12px 18px;
+      border:none;
+      border-radius:10px;
+      font-weight:bold;
+      cursor:pointer;
+      transition:0.3s;
+      box-shadow:0 3px 10px rgba(0,0,0,0.1);
+    }
+
+    .logout-btn:hover{
+      background:#b52a37;
+      transform:translateY(-2px);
+    }
+
+    /* Dashboard Grid */
+
+    .menu{
+      display:grid;
+      grid-template-columns:repeat(auto-fit, minmax(240px, 1fr));
+      gap:25px;
+      max-width:1200px;
+      margin:auto;
+    }
+
+    /* Cards */
+
+    .card{
+      background:white;
+      border-radius:18px;
+      padding:30px 20px;
+      text-align:center;
+      position:relative;
+      overflow:hidden;
+      cursor:pointer;
+      transition:0.3s ease;
+      box-shadow:0 5px 15px rgba(0,0,0,0.08);
+    }
+
+    .card:hover{
+      transform:translateY(-8px) scale(1.02);
+      box-shadow:0 12px 25px rgba(0,0,0,0.15);
+    }
+
+    .card::before{
+      content:"";
+      position:absolute;
+      top:0;
+      left:0;
+      width:100%;
+      height:6px;
+    }
+
+    /* Card Colors */
+
+    .stock::before{
+      background:#007BFF;
+    }
+
+    .debt::before{
+      background:#ff9800;
+    }
+
+    .report::before{
+      background:#28a745;
+    }
+
+    .users::before{
+      background:#6f42c1;
+    }
+
+    .sell::before{
+      background:#dc3545;
+    }
+
+    .logout-card::before{
+      background:#6c757d;
+    }
+
+    .icon{
+      font-size:3rem;
+      margin-bottom:15px;
+    }
+
+    .card a{
+      text-decoration:none;
+      color:#222;
+      font-size:1.2rem;
+      font-weight:bold;
+      display:block;
+    }
+
+    .card p{
+      color:#666;
+      margin-top:10px;
+      font-size:0.95rem;
+      line-height:1.5;
+    }
+
+    /* Footer */
+
+    .footer{
+      text-align:center;
+      margin-top:50px;
+      color:#777;
+      font-size:0.95rem;
+    }
+
+    /* Responsive */
+
+    @media(max-width:600px){
+
+      .header h1{
+        font-size:2rem;
+      }
+
+      .card{
+        padding:25px 15px;
+      }
+
+      .top-bar{
+        flex-direction:column;
+        align-items:stretch;
+      }
+
+      .logout-btn{
+        width:100%;
+      }
+
+    }
+
+  </style>
+</head>
+
+<body>
+
+  <!-- Top Bar -->
+
+  <div class="top-bar">
+
+    <div class="welcome-box">
+      👋 Welcome, Admin
+    </div>
+
+    <button id="logoutBtn" class="logout-btn">
+      🚪 Logout
+    </button>
+
+  </div>
+
+  <!-- Header -->
+
+  <div class="header">
+    <h1>Inventra Dashboard</h1>
+    <p>Manage your stock, users, reports and daily business operations.</p>
+  </div>
+
+  <!-- Dashboard Cards -->
+
+  <div class="menu">
+
+    <div class="card stock">
+      <div class="icon">📦</div>
+      <a href="Stock.html">Manage Stock</a>
+      <p>Add, edit and manage all product inventory.</p>
+    </div>
+
+    <div class="card debt">
+      <div class="icon">💰</div>
+      <a href="debts.html">Debt Sales</a>
+      <p>Track customer debts and outstanding balances.</p>
+    </div>
+
+    <div class="card report">
+      <div class="icon">📊</div>
+      <a href="sales_report.html">Sales Reports</a>
+      <p>View daily, weekly and monthly sales analytics.</p>
+    </div>
+
+    <div class="card users">
+      <div class="icon">👥</div>
+      <a href="manage_user.html">Manage Users</a>
+      <p>Create and manage system users and permissions.</p>
+    </div>
+
+    <div class="card sell">
+      <div class="icon">🛒</div>
+      <a href="Sell.html">Sell Products</a>
+      <p>Process sales and generate receipts quickly.</p>
+    </div>
+
+    <div class="card logout-card">
+      <div class="icon">🚪</div>
+      <a href="index.html">Logout</a>
+      <p>Exit the system safely and securely.</p>
+    </div>
+
+  </div>
+
+  <!-- Footer -->
+
+  <div class="footer">
+    © 2026 Inventra Stock Management System
+  </div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+
+    const user = JSON.parse(localStorage.getItem('loggedInUser'));
+
+    if (!user || user.role !== 'Admin') {
+      alert("Unauthorized access! Redirecting to login...");
+      window.location.href = "Home Stock.html";
+    }
+
+    // Show Admin Name
+    if(user){
+      document.querySelector('.welcome-box').innerHTML =
+        `👋 Welcome, ${user.username || "Admin"}`;
+    }
+
+    // Logout Function
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+
+      localStorage.removeItem('loggedInUser');
+
+      alert("You have been logged out.");
+
+      window.location.href = "index.html";
+
+    });
+
+    // =====================================
+// SUPABASE AUTO SYNC
+// =====================================
+
+const supabaseUrl =
+  "https://quhorqxtzhpuxeujgxfw.supabase.co";
+
+const supabaseKey =
+  "YOUR_SUPABASE_ANON_KEY";
+
+const supabaseClient =
+  supabase.createClient(
+    supabaseUrl,
+    supabaseKey
+  );
+
+async function syncLocalStorageToSupabase() {
+
+  try {
+
+    // ------------------------
+    // PRODUCTS
+    // ------------------------
+    const products =
+      JSON.parse(
+        localStorage.getItem("products")
+      ) || [];
+
+    if(products.length){
+
+      const { error: productError } =
+        await supabaseClient
+          .from("products")
+          .insert(products);
+
+      if(productError){
+
+        console.error(
+          "Products Sync Error:",
+          productError
+        );
+
+      } else {
+
+        console.log(
+          "✅ Products synced"
+        );
+
+      }
+    }
+
+    // ------------------------
+    // SALES
+    // ------------------------
+    const sales =
+      JSON.parse(
+        localStorage.getItem("allSales")
+      ) || [];
+
+    if(sales.length){
+
+      const uniqueSales = [];
+      const seen = new Set();
+
+      sales.forEach(sale => {
+
+        const key =
+          `${sale.receiptNo}_${sale.product}_${sale.date}`;
+
+        if(!seen.has(key)){
+
+          seen.add(key);
+          uniqueSales.push(sale);
+
+        }
+
+      });
+
+      const { error: salesError } =
+        await supabaseClient
+          .from("sales")
+          .insert(uniqueSales);
+
+      if(salesError){
+
+        console.error(
+          "Sales Sync Error:",
+          salesError
+        );
+
+      } else {
+
+        console.log(
+          "✅ Sales synced"
+        );
+
+      }
+    }
+
+    // ------------------------
+    // USERS
+    // ------------------------
+    const users =
+      JSON.parse(
+        localStorage.getItem("users")
+      ) || [];
+
+    if(users.length){
+
+      const { error: userError } =
+        await supabaseClient
+          .from("users")
+          .insert(users);
+
+      if(userError){
+
+        console.error(
+          "Users Sync Error:",
+          userError
+        );
+
+      } else {
+
+        console.log(
+          "✅ Users synced"
+        );
+
+      }
+    }
+
+    console.log(
+      "✅ Full localStorage sync complete"
+    );
+
+  } catch(err){
+
+    console.error(
+      "Sync Failed:",
+      err
+    );
+
+  }
+}
+
+// Sync when dashboard loads
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+
+    if(navigator.onLine){
+
+      syncLocalStorageToSupabase();
+
+    }
+
+  }
+);
+
+// Sync when internet returns
+window.addEventListener(
+  "online",
+  syncLocalStorageToSupabase
+);
+  </script>
+
+</body>
+</html>
