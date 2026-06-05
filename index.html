@@ -366,12 +366,18 @@ const email = document.getElementById("email").value.trim().toLowerCase();      
 
       const users = JSON.parse(localStorage.getItem("users")) || [];
 
-      // ✅ Check user credentials
-      const validUser = users.find(u =>
-  u.email.toLowerCase() === email &&
-  u.password === password &&
-  u.role === role
-);
+const validUser = users.find(u => {
+
+  const userEmail = (u?.email || "").toLowerCase();
+  const inputEmail = (email || "").toLowerCase();
+
+  return (
+    userEmail === inputEmail &&
+    u?.password === password &&
+    u?.role === role
+  );
+
+});
       if (validUser) {
         // Save session in localStorage
 localStorage.setItem("loggedInUser", JSON.stringify({
