@@ -229,8 +229,8 @@ tr:hover td{
 
   <form id="createUserForm" onsubmit="return createUser(event)">
     <div class="form-group">
-      <label for="username">Username:</label>
-      <input type="text" id="username" required>
+      <label for="email">Email:</label>
+      <input type="email" id="email" required>
     </div>
 
     <div class="form-group">
@@ -262,7 +262,7 @@ tr:hover td{
   <table id="userTable">
     <thead>
       <tr>
-        <th>Username</th>
+        <th>Email</th>
         <th>Role</th>
         <th>Actions</th>
       </tr>
@@ -271,8 +271,21 @@ tr:hover td{
   </table>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 
 <script>
+  
+const supabaseUrl = "https://quhorqxtzhpuxeujgxfw.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1aG9ycXh0emhwdXhldWpneGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNTI2NzgsImV4cCI6MjA5NTYyODY3OH0._bldtcFHB59obsAsxC7ctKn-EqoQqKnwLTXowo2ppF8";
+
+
+const supabaseClient =
+  window.supabase.createClient(
+    supabaseUrl,
+    supabaseKey
+  );
+
   // ✅ Ensure only admins can access this page
   const currentUser = JSON.parse(localStorage.getItem('loggedInUser'));
 if (!currentUser || currentUser.role !== 'Admin') {
@@ -281,101 +294,208 @@ if (!currentUser || currentUser.role !== 'Admin') {
 }
 // ✅ Function to render user list
   // ✅ Render user list
-  function renderUsers() {
-    const users = JSON.parse(localStorage.getItem('users')) || [];
-    const tableBody = document.getElementById('userTableBody');
-    tableBody.innerHTML = '';
+ function renderUsers() {
+  const users =
+    JSON.parse(localStorage.getItem("users")) || [];
 
-    users.forEach((user, index) => {
-      const row = `
-        <tr>
-          <td>${user.username}</td>
-          <td>${user.role}</td>
-          <td>
-            <button class="action-btn edit-btn" onclick="editUser(${index})">Edit</button>
-            <button class="action-btn delete-btn" onclick="deleteUser(${index})">Delete</button>
-          </td>
-        </tr>`;
-      tableBody.innerHTML += row;
-    });
-  }
+  const tableBody =
+    document.getElementById("userTableBody");
 
+  tableBody.innerHTML = "";
+
+  users.forEach((user, index) => {
+    tableBody.innerHTML += `
+      <tr>
+        <td>${user.email}</td>
+        <td>${user.role}</td>
+        <td>
+          <button
+            class="action-btn edit-btn"
+            onclick="editUser(${index})">
+            Edit
+          </button>
+
+          <button
+            class="action-btn delete-btn"
+            onclick="deleteUser(${index})">
+            Delete
+          </button>
+        </td>
+      </tr>
+    `;
+  });
+}
   // ✅ Create user in localStorage
-  function createUser(event) {
-    event.preventDefault();
+  //function createUser(event) {
+    async function createUser(event) {
+event.preventDefault();
 
-    const username = document.getElementById('username').value.trim();
-    const password = document.getElementById('password').value;
-    const confirmPass = document.getElementById('confirm_password').value;
-    const role = document.getElementById('role').value;
-    const msg = document.getElementById('msg');
-    const errorMsg = document.getElementById('errorMsg');
+const email =
+document.getElementById("email")
+.value.trim()
+.toLowerCase();
 
-    if (password.length < 6) {
-      errorMsg.textContent = 'Password must be at least 6 characters long.';
-      return false;
-    }
-    if (password !== confirmPass) {
-      errorMsg.textContent = 'Passwords do not match!';
-      return false;
-    }
-    errorMsg.textContent = '';
+const password =
+document.getElementById("password").value;
 
-    let users = JSON.parse(localStorage.getItem('users')) || [];
+const confirmPass =
+document.getElementById("confirm_password").value;
 
-    if (users.some(u => u.username.toLowerCase() === username.toLowerCase())) {
-      msg.style.color = 'red';
-      msg.textContent = '⚠️ Username already exists!';
-      return false;
-    }
+const role =
+document.getElementById("role").value;
 
-    const newUser = {
-      id: Date.now(),
-      username,
-      password,
-      role
-    };
-    users.push(newUser);
-    localStorage.setItem('users', JSON.stringify(users));
+const msg =
+document.getElementById("msg");
 
-    msg.style.color = 'green';
-    msg.textContent = '✅ User created successfully!';
+const errorMsg =
+document.getElementById("errorMsg");
 
-    document.getElementById('createUserForm').reset();
+if (password.length < 6) {
+errorMsg.textContent =
+"Password must be at least 6 characters.";
+return false;
+}
 
-    // ✅ Refresh user list instantly
-    renderUsers();
+if (password !== confirmPass) {
+errorMsg.textContent =
+"Passwords do not match!";
+return false;
+}
 
-    return false;
-  }
+errorMsg.textContent = "";
+
+let users =
+JSON.parse(
+localStorage.getItem("users")
+) || [];
+
+if (
+users.some(
+u =>
+u.email &&
+u.email.toLowerCase() === email
+)
+) {
+msg.style.color = "red";
+msg.textContent =
+"⚠️ Email already exists!";
+return false;
+}
+
+const newUser = {
+id: Date.now(),
+email,
+password,
+role
+};
+
+users.push(newUser);
+
+localStorage.setItem(
+"users",
+JSON.stringify(users)
+);
+
+const { error } =
+await supabaseClient
+.from("users")
+.upsert([newUser]);
+
+if (error) {
+console.error(error);
+}
+
+msg.style.color = "green";
+msg.textContent =
+"✅ User created successfully!";
+
+document
+.getElementById("createUserForm")
+.reset();
+
+renderUsers();
+
+return false;
+}
 
   // ✅ Edit user
-  function editUser(index) {
-    const users = JSON.parse(localStorage.getItem('users')) || [];
-    const user = users[index];
-    const newUsername = prompt('Edit username:', user.username);
-    const newPassword = prompt('Edit password:', user.password);
-    const newRole = prompt('Edit role (Admin/User):', user.role);
+  async function editUser(index) {
+  const users =
+    JSON.parse(localStorage.getItem("users")) || [];
 
-    if (newUsername && newPassword && newRole) {
-      users[index].username = newUsername;
-      users[index].password = newPassword;
-      users[index].role = newRole;
-      localStorage.setItem('users', JSON.stringify(users));
-      renderUsers();
-      alert('✅ User updated successfully!');
+  const user = users[index];
+
+  const newEmail =
+    prompt("Edit email:", user.email);
+
+  const newPassword =
+    prompt("Edit password:", user.password);
+
+  const newRole =
+    prompt("Edit role (Admin/User):", user.role);
+
+  if (newEmail && newPassword && newRole) {
+
+    users[index].email =
+      newEmail.toLowerCase();
+
+    users[index].password =
+      newPassword;
+
+    users[index].role =
+      newRole;
+
+    localStorage.setItem(
+      "users",
+      JSON.stringify(users)
+    );
+
+    const { error } =
+      await supabaseClient
+        .from("users")
+        .upsert(users[index]);
+
+    if (error) {
+      console.error(error);
     }
+
+    renderUsers();
+
+    alert("✅ User updated successfully!");
   }
+}
 
   // ✅ Delete user
-  function deleteUser(index) {
-    if (confirm('Are you sure you want to delete this user?')) {
-      let users = JSON.parse(localStorage.getItem('users')) || [];
-      users.splice(index, 1);
-      localStorage.setItem('users', JSON.stringify(users));
-      renderUsers();
-    }
+  async function deleteUser(index) {
+
+  if (!confirm("Delete this user?"))
+    return;
+
+  let users =
+    JSON.parse(localStorage.getItem("users")) || [];
+
+  const deletedUser =
+    users[index];
+
+  users.splice(index, 1);
+
+  localStorage.setItem(
+    "users",
+    JSON.stringify(users)
+  );
+
+  const { error } =
+    await supabaseClient
+      .from("users")
+      .delete()
+      .eq("id", deletedUser.id);
+
+  if (error) {
+    console.error(error);
   }
+
+  renderUsers();
+}
 
   // ✅ Load users when page loads
   renderUsers();
@@ -383,6 +503,39 @@ if (!currentUser || currentUser.role !== 'Admin') {
   e.preventDefault();
   window.location.href = "admin_dashboard.html";
 }
+  async function syncAllUsersToSupabase() {
+const users =
+JSON.parse(
+localStorage.getItem("users")
+) || [];
+
+if (users.length === 0) return;
+
+const { error } =
+await supabaseClient
+.from("users")
+.upsert(users);
+
+if (error) {
+console.error(
+"Supabase sync failed:",
+error
+);
+} else {
+console.log(
+"✅ All local users synced"
+);
+}
+}
+
+document.addEventListener(
+"DOMContentLoaded",
+async () => {
+await syncAllUsersToSupabase();
+renderUsers();
+}
+);
+
 </script>
 </body>
 </html>
