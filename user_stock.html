@@ -131,6 +131,7 @@
   </table>
 
   <button class="btn btn-sell" onclick="proceedToSell()">Proceed to Sell</button>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script>
     let products = JSON.parse(localStorage.getItem("products")) || [];
@@ -234,6 +235,140 @@
       if (e) e.preventDefault();
       window.location.href = 'user_dashboard.html';
     }
+    <!-- SUPABASE -->
+
+
+
+const SUPABASE_URL = "YOUR_SUPABASE_URL";
+const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+
+const supabaseClient = supabase.createClient(
+  SUPABASE_URL,
+  SUPABASE_ANON_KEY
+);
+
+async function loadProducts() {
+
+  const { data, error } = await supabaseClient
+    .from("products")
+    .select("*")
+    .order("id", { ascending: true });
+
+  if (error) {
+    console.error("Error loading products:", error);
+    return;
+  }
+
+  products = data || [];
+
+  renderTable();
+}
+// Sync all products from localStorage to Supabase
+async function syncProductsToSupabase() {
+
+  const products =
+    JSON.parse(localStorage.getItem("products")) || [];
+
+  if (!products.length) {
+    console.log("No products to sync");
+    return;
+  }
+
+  // Remove duplicates by product name
+  const uniqueProducts = [];
+
+  const seen = new Set();
+
+  products.forEach(product => {
+
+    const key =
+      product.productName?.trim().toLowerCase();
+
+    if (!seen.has(key)) {
+
+      seen.add(key);
+
+      uniqueProducts.push(product);
+
+    }
+
+  });
+
+  const { error } = await supabaseClient
+    .from("products")
+    .upsert(uniqueProducts, {
+      onConflict: "id"
+    });
+
+  if (error) {
+
+    console.error(
+      "Products Sync Error:",
+      error
+    );
+
+  } else {
+
+    console.log(
+      "✅ Products synced to Supabase"
+    );
+
+  }
+
+}
+
+// Auto sync when page opens
+document.addEventListener(
+  "DOMContentLoaded",
+  () => {
+
+    if (navigator.onLine) {
+
+      syncProductsToSupabase();
+
+    }
+
+  }
+);
+
+// Auto sync when internet returns
+window.addEventListener(
+  "online",
+  syncProductsToSupabase
+);
+
+// Auto sync after restore
+const originalRestoreProducts =
+  restoreProducts;
+
+restoreProducts = function(event) {
+
+  originalRestoreProducts(event);
+
+  setTimeout(() => {
+
+    syncProductsToSupabase();
+
+  }, 1000);
+
+};
+
+supabaseClient
+  .channel("products-live")
+  .on(
+    "postgres_changes",
+    {
+      event: "*",
+      schema: "public",
+      table: "products"
+    },
+    () => {
+      loadProducts();
+    }
+  )
+  .subscribe();
+
+
   </script>
 </body>
 </html>
