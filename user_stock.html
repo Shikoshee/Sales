@@ -134,8 +134,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <script>
-    let products = JSON.parse(localStorage.getItem("products")) || [];
-
+let products = [];
     function renderTable(data = products) {
       const tbody = document.querySelector("#stockTable tbody");
       tbody.innerHTML = "";
@@ -225,6 +224,7 @@
         }
       };
       reader.readAsText(file);
+      
     }
 
     // Initial render
@@ -235,12 +235,13 @@
       if (e) e.preventDefault();
       window.location.href = 'user_dashboard.html';
     }
-    <!-- SUPABASE -->
+    // SUPABASE 
 
 
 
-const SUPABASE_URL = "YOUR_SUPABASE_URL";
-const SUPABASE_ANON_KEY = "YOUR_SUPABASE_ANON_KEY";
+const supabaseUrl = "https://quhorqxtzhpuxeujgxfw.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1aG9ycXh0emhwdXhldWpneGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNTI2NzgsImV4cCI6MjA5NTYyODY3OH0._bldtcFHB59obsAsxC7ctKn-EqoQqKnwLTXowo2ppF8";
+
 
 const supabaseClient = supabase.createClient(
   SUPABASE_URL,
@@ -249,19 +250,48 @@ const supabaseClient = supabase.createClient(
 
 async function loadProducts() {
 
-  const { data, error } = await supabaseClient
-    .from("products")
-    .select("*")
-    .order("id", { ascending: true });
+  try {
 
-  if (error) {
-    console.error("Error loading products:", error);
-    return;
+    const { data, error } = await supabaseClient
+      .from("products")
+      .select("*")
+      .order("productName", { ascending: true });
+
+    if (error) throw error;
+
+    products = data || [];
+
+    // Cache locally for offline use
+    localStorage.setItem(
+      "products",
+      JSON.stringify(products)
+    );
+
+    renderTable();
+
+    console.log("✅ Products loaded from Supabase");
+
+  } catch (err) {
+
+    console.error(
+      "Supabase load failed:",
+      err
+    );
+
+    // Offline fallback
+    products =
+      JSON.parse(
+        localStorage.getItem("products")
+      ) || [];
+
+    renderTable();
+
+    console.log(
+      "📦 Loaded products from local cache"
+    );
+
   }
 
-  products = data || [];
-
-  renderTable();
 }
 // Sync all products from localStorage to Supabase
 async function syncProductsToSupabase() {
@@ -320,11 +350,15 @@ async function syncProductsToSupabase() {
 // Auto sync when page opens
 document.addEventListener(
   "DOMContentLoaded",
-  () => {
+  async () => {
+
+    await loadProducts();
 
     if (navigator.onLine) {
 
-      syncProductsToSupabase();
+      await syncProductsToSupabase();
+
+      await loadProducts();
 
     }
 
@@ -334,9 +368,14 @@ document.addEventListener(
 // Auto sync when internet returns
 window.addEventListener(
   "online",
-  syncProductsToSupabase
-);
+  async () => {
 
+    await syncProductsToSupabase();
+
+    await loadProducts();
+
+  }
+);
 // Auto sync after restore
 const originalRestoreProducts =
   restoreProducts;
@@ -367,7 +406,20 @@ supabaseClient
     }
   )
   .subscribe();
-
+supabaseClient
+  .channel("products-live")
+  .on(
+    "postgres_changes",
+    {
+      event: "*",
+      schema: "public",
+      table: "products"
+    },
+    () => {
+      loadProducts();
+    }
+  )
+  .subscribe();
 
   </script>
 </body>
