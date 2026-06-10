@@ -354,11 +354,49 @@ const supabaseClient = window.supabase.createClient(
   supabaseUrl,
   supabaseKey
 );
+async function loadSalesFromSupabase() {
 
-let allSales =
-  JSON.parse(localStorage.getItem("allSales")) || [];
+  const { data, error } =
+    await supabaseClient
+      .from("sales")
+      .select("*")
+      .order("date", { ascending: false });
 
-allSales.reverse();
+  if (error) {
+
+    console.error(
+      "Error loading sales:",
+      error
+    );
+
+    // OFFLINE FALLBACK
+    allSales =
+      JSON.parse(
+        localStorage.getItem("allSales")
+      ) || [];
+
+    renderSales();
+    updateSummary();
+
+    return;
+  }
+
+  allSales = data || [];
+
+  // Cache locally for offline use
+  localStorage.setItem(
+    "allSales",
+    JSON.stringify(allSales)
+  );
+
+  renderSales();
+  updateSummary();
+
+  console.log(
+    "✅ Sales loaded from Supabase"
+  );
+}
+let allSales = [];
 
 function formatMoney(amount){
 
@@ -959,10 +997,6 @@ function resetSystem(){
 }
 
 
-renderSales();
-
-updateSummary();
-
 
 function goBack(){
 
@@ -1026,10 +1060,18 @@ window.addEventListener(
 
 document.addEventListener(
   "DOMContentLoaded",
-  () => {
+  async () => {
+
+    await loadSalesFromSupabase();
 
     if (navigator.onLine) {
-      syncPendingSales();
+
+      await syncAllLocalSales();
+
+      await syncPendingSales();
+
+      await loadSalesFromSupabase();
+
     }
 
   }
@@ -1096,12 +1138,17 @@ async function syncAllLocalSales() {
 }
 document.addEventListener(
   "DOMContentLoaded",
-  () => {
+  async () => {
+
+    await loadSalesFromSupabase();
 
     if (navigator.onLine) {
 
-      syncAllLocalSales();
-      syncPendingSales();
+      await syncAllLocalSales();
+
+      await syncPendingSales();
+
+      await loadSalesFromSupabase();
 
     }
 
@@ -1145,7 +1192,20 @@ function dedupeByReceiptNo(list) {
     return true;
   });
 }
-
+supabaseClient
+  .channel("sales-changes")
+  .on(
+    "postgres_changes",
+    {
+      event: "*",
+      schema: "public",
+      table: "sales"
+    },
+    () => {
+      loadSalesFromSupabase();
+    }
+  )
+  .subscribe();
 </script>
 
 </body>
