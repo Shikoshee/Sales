@@ -199,8 +199,7 @@
 
 </script>
   <script>
-    let products = JSON.parse(localStorage.getItem("products")) || [];
-
+let products = [];
     function renderTable(list = products) {
       const tbody = document.querySelector("#stockTable tbody");
       tbody.innerHTML = "";
@@ -241,7 +240,7 @@
   window.location.href = "Sell.html";
     }
 
-    function addProduct() {
+    async function addProduct() {
       
       let product = {
         productName: document.getElementById("productName").value,
@@ -259,22 +258,39 @@
         alert("Product Name is required!");
         return;
       }
-      products.push(product);
-      renderTable();
-      clearForm();
-      queueProductForSync(product);
+     products.push(product);
+renderTable();
+clearForm();
+
+queueProductForSync(product);
+
+if (navigator.onLine) {
+  await syncPendingProducts();
+  await loadProductsFromSupabase();
+}
     }
 
     function clearForm() {
       document.querySelectorAll(".form-container input").forEach(input => input.value = "");
     }
 
-    function deleteProduct(index) {
-      if (confirm("Are you sure you want to delete this product?")) {
-        products.splice(index, 1);
-        renderTable();
-      }
-    }
+    async function deleteProduct(index) {
+  const product = products[index];
+
+  if (!confirm("Are you sure?")) return;
+
+  const { error } = await window.supabaseClient
+    .from("products")
+    .delete()
+    .eq("id", product.id);
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  await loadProductsFromSupabase();
+}
 
     function editProduct(index) {
       let prod = products[index];
@@ -373,8 +389,8 @@ async function syncPendingProducts() {
 
   for (const product of pending) {
     const { error } = await window.supabaseClient
-      .from("products")
-      .upsert(product);
+  .from("products")
+  .insert(product);
 
     if (error) {
       console.error("Sync error:", error);
@@ -387,11 +403,41 @@ async function syncPendingProducts() {
 }
 window.addEventListener("online", syncPendingProducts);
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadProductsFromSupabase();
+
   if (navigator.onLine) {
-    syncPendingProducts();
+    await syncPendingProducts();
+    await loadProductsFromSupabase();
   }
 });
+async function loadProductsFromSupabase() {
+  const { data, error } = await window.supabaseClient
+    .from("products")
+    .select("*");
+
+  if (error) {
+    console.error("Error loading products:", error);
+    return;
+  }
+
+  products = data || [];
+  renderTable();
+}
+window.supabaseClient
+  .channel("products-changes")
+  .on(
+    "postgres_changes",
+    {
+      event: "*",
+      schema: "public",
+      table: "products"
+    },
+    () => {
+      loadProductsFromSupabase();
+    }
+  )
+  .subscribe();
   </script>
 </body>
 </html>
