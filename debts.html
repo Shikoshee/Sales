@@ -370,10 +370,61 @@ const supabaseClient = window.supabase.createClient(
   supabaseKey
 );
 
-  let allSales = JSON.parse(localStorage.getItem("allSales")) || [];
+async function loadSalesFromSupabase() {
 
-  renderDebts();
-  updateDebtTotals();
+  try {
+
+    const { data, error } = await supabaseClient
+      .from("sales")
+      .select("*")
+      .order("date", { ascending: false });
+
+    if (error) throw error;
+
+    allSales = data || [];
+
+    // Cache locally for offline use
+    localStorage.setItem(
+      "allSales",
+      JSON.stringify(allSales)
+    );
+    
+    renderDebts();
+    updateDebtTotals();
+
+    console.log("✅ Sales loaded from Supabase");
+
+  } catch (err) {
+
+    console.error(
+      "Supabase load failed:",
+      err
+    );
+
+    // Offline fallback
+    allSales =
+      JSON.parse(
+        localStorage.getItem("allSales")
+      ) || [];
+
+    renderDebts();
+    updateDebtTotals();
+
+    console.log(
+      "📦 Loaded sales from local cache"
+    );
+  }
+}
+let allSales = [];
+
+document.addEventListener(
+  "DOMContentLoaded",
+  async () => {
+
+    await loadSalesFromSupabase();
+
+  }
+);
 
   // Render debts table
   function renderDebts() {
@@ -528,8 +579,7 @@ const supabaseClient = window.supabase.createClient(
   }
 
   // Mark debt as paid
-  function markAsPaid(index){
-
+async function markAsPaid(index){
   const searchValue =
     document.getElementById("searchDebtor")
     ?.value
@@ -692,6 +742,32 @@ const supabaseClient = window.supabase.createClient(
     "allSales",
     JSON.stringify(allSales)
   );
+  if (navigator.onLine) {
+
+  const { error } =
+    await supabaseClient
+      .from("sales")
+      .upsert(
+        [currentSale],
+        { onConflict: "receiptNo" }
+      );
+
+  if (error) {
+
+    console.error(
+      "Update failed:",
+      error
+    );
+
+  } else {
+
+    console.log(
+      "✅ Debt payment updated in Supabase"
+    );
+
+  }
+
+}
 
   renderDebts();
 
@@ -869,11 +945,7 @@ async function forceSyncAllSalesToSupabase() {
 window.addEventListener("online", () => {
   forceSyncAllSalesToSupabase();
 });
-document.addEventListener("DOMContentLoaded", () => {
-  if (navigator.onLine) {
-    forceSyncAllSalesToSupabase();
-  }
-});
+
 async function forceSyncAllDebtsToSupabase() {
 
   let sales = JSON.parse(localStorage.getItem("allSales")) || [];
@@ -900,11 +972,13 @@ for (const s of sales) {
   }
 }
 
-const debts = Array.from(map.values()).filter(s =>
-  (parseFloat(s.balance) || 0) > 0 ||
-  s.status === "PARTIAL" ||
-  s.clearedAmount
-);
+const debts = Array.from(map.values())
+  .filter(s =>
+    (parseFloat(s.balance) || 0) > 0 ||
+    s.status === "PARTIAL" ||
+    s.clearedAmount
+  )
+  .map(({ id, sale_id, transaction_type, ...rest }) => rest);
 
   if (!debts.length) {
     console.log("No debts to sync");
@@ -923,16 +997,57 @@ const debts = Array.from(map.values()).filter(s =>
     console.log("✅ Debts synced to Supabase");
   }
 }
-document.addEventListener("DOMContentLoaded", () => {
-  if (navigator.onLine) {
-    forceSyncAllDebtsToSupabase();
-  }
-});
+document.addEventListener(
+  "DOMContentLoaded",
+  async () => {
 
+    await loadSalesFromSupabase();
+
+    const loggedInUser =
+      JSON.parse(localStorage.getItem("loggedInUser"));
+
+    const backBtn =
+      document.querySelector(".btn-back");
+
+    if (loggedInUser && backBtn) {
+
+      if (loggedInUser.role === "User") {
+        backBtn.href = "user_stock.html";
+      } else {
+        backBtn.href = "Stock.html";
+      }
+    }
+
+    if (navigator.onLine) {
+
+      await forceSyncAllSalesToSupabase();
+
+      await forceSyncAllDebtsToSupabase();
+
+    }
+
+  }
+);
 window.addEventListener("online", () => {
   forceSyncAllDebtsToSupabase();
 });
 
+supabaseClient
+  .channel("sales-live")
+  .on(
+    "postgres_changes",
+    {
+      event: "*",
+      schema: "public",
+      table: "sales"
+    },
+    () => {
+
+      loadSalesFromSupabase();
+
+    }
+  )
+  .subscribe();
 </script>
 
 </body>
