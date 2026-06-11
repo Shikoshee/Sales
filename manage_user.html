@@ -382,18 +382,23 @@ return false;
 }
 
 const newUser = {
-
-email,
-password,
-role
+  id: crypto.randomUUID(), // IMPORTANT
+  email,
+  password,
+  role,
+  synced: false,
+  updated_at: new Date().toISOString()
 };
+users.push(newUser);
 
 users.push(newUser);
 
 localStorage.setItem(
-"users",
-JSON.stringify(users)
+  "users",
+  JSON.stringify(users)
 );
+
+renderUsers();
 
 const { error } =
 await supabaseClient
@@ -503,61 +508,59 @@ return false;
   window.location.href = "admin_dashboard.html";
 }
   async function syncAllUsersToSupabase() {
-const users =
-JSON.parse(
-localStorage.getItem("users")
-) || [];
 
-if (users.length === 0) return;
+  if (!navigator.onLine) {
+    console.log("Offline - sync skipped");
+    return;
+  }
 
-const { error } =
-await supabaseClient
-.from("users")
-.upsert(users);
+  let users =
+    JSON.parse(
+      localStorage.getItem("users")
+    ) || [];
 
-if (error) {
-console.error(
-"Supabase sync failed:",
-error
-);
-} else {
-console.log(
-"✅ All local users synced"
-);
-}
+  const unsyncedUsers =
+    users.filter(
+      u => !u.synced
+    );
+
+  if (unsyncedUsers.length === 0)
+    return;
+
+  const payload =
+    unsyncedUsers.map(u => ({
+      id: u.id,
+      email: u.email,
+      password: u.password,
+      role: u.role
+    }));
+
+  const { error } =
+    await supabaseClient
+      .from("users")
+      .upsert(payload);
+
+  if (error) {
+    console.error(error);
+    return;
+  }
+
+  users = users.map(u => ({
+    ...u,
+    synced: true
+  }));
+
+  localStorage.setItem(
+    "users",
+    JSON.stringify(users)
+  );
+
+  console.log(
+    "✅ Offline users synced"
+  );
 }
 async function loadUsersFromSupabase() {
 
-  try {
-
-    const { data, error } =
-      await supabaseClient
-        .from("users")
-        .select("*")
-        .order("id", { ascending: true });
-
-    if (error) throw error;
-
-    // Save Supabase data locally
-    localStorage.setItem(
-      "users",
-      JSON.stringify(data || [])
-    );
-
-    console.log(
-      "✅ Users loaded from Supabase"
-    );
-
-  } catch (err) {
-
-    console.error(
-      "❌ Failed to load users:",
-      err
-    );
-
-  }
-
-}
 
 document.addEventListener(
   "DOMContentLoaded",
@@ -591,7 +594,23 @@ supabaseClient
     }
   )
   .subscribe();
+  }
+  window.addEventListener(
+  "online",
+  async () => {
 
+    console.log(
+      "Internet restored"
+    );
+
+    await syncAllUsersToSupabase();
+
+    await loadUsersFromSupabase();
+
+    renderUsers();
+
+  }
+);
 </script>
 </body>
 </html>
