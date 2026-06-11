@@ -341,8 +341,7 @@ document.getElementById("password").value;
 const confirmPass =
 document.getElementById("confirm_password").value;
 
-const role =
-document.getElementById("role").value;
+const role = String(document.getElementById("role").value);
 
 const msg =
 document.getElementById("msg");
@@ -383,7 +382,7 @@ return false;
 }
 
 const newUser = {
-id: Date.now(),
+
 email,
 password,
 role
