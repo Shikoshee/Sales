@@ -527,14 +527,71 @@ console.log(
 );
 }
 }
+async function loadUsersFromSupabase() {
+
+  try {
+
+    const { data, error } =
+      await supabaseClient
+        .from("users")
+        .select("*")
+        .order("id", { ascending: true });
+
+    if (error) throw error;
+
+    // Save Supabase data locally
+    localStorage.setItem(
+      "users",
+      JSON.stringify(data || [])
+    );
+
+    console.log(
+      "✅ Users loaded from Supabase"
+    );
+
+  } catch (err) {
+
+    console.error(
+      "❌ Failed to load users:",
+      err
+    );
+
+  }
+
+}
 
 document.addEventListener(
-"DOMContentLoaded",
-async () => {
-await syncAllUsersToSupabase();
-renderUsers();
-}
+  "DOMContentLoaded",
+  async () => {
+
+    // Load users from Supabase first
+    await loadUsersFromSupabase();
+
+    // Display them
+    renderUsers();
+
+    // Push any local changes back
+    await syncAllUsersToSupabase();
+
+  }
 );
+supabaseClient
+  .channel("users-live")
+  .on(
+    "postgres_changes",
+    {
+      event: "*",
+      schema: "public",
+      table: "users"
+    },
+    async () => {
+
+      await loadUsersFromSupabase();
+      renderUsers();
+
+    }
+  )
+  .subscribe();
 
 </script>
 </body>
