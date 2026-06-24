@@ -54,21 +54,6 @@
     .btn-edit { background: #ffc107; color: #000; }
     .btn-delete { background: #dc3545; color: #fff; }
 
-    .dashboard-btn {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      background: #007BFF;
-      color: #fff;
-      padding: 10px 18px;
-      border-radius: 5px;
-      font-weight: bold;
-      text-decoration: none;
-      transition: background 0.3s;
-    }
-    .dashboard-btn:hover {
-      background: #0056b3;
-    }
     
     .search-bar {
       margin-top: 20px;
@@ -103,15 +88,127 @@
     .hidden {
   display: none;
 }
+/* Sidebar */
+.sidebar {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  width: 0;              /* hidden by default */
+  height: auto;
+  background: #007BFF;
+  color: white;
+  overflow: hidden;
+  transition: width 0.3s ease;
+  border-radius: 8px;
+  z-index: 1000;
+  padding: 0;
+}
+
+/* Expanded sidebar */
+.sidebar.active {
+  width: 240px;
+  padding: 15px;
+}
+
+/* Logo and links hidden by default */
+.logo,
+.sidebar a {
+  display: none;
+}
+
+/* Show when opened */
+.sidebar.active .logo,
+.sidebar.active a {
+  display: flex;
+}
+
+/* Logo */
+.logo {
+  justify-content: center;
+  margin: 10px 0 20px;
+  font-size: 1.2rem;
+}
+
+/* Links */
+.sidebar a {
+  color: white;
+  text-decoration: none;
+  padding: 10px;
+  border-radius: 6px;
+  align-items: center;
+  gap: 10px;
+}
+
+.sidebar a:hover {
+  background: rgba(255,255,255,0.2);
+}
+
+/* Always visible menu button */
+.toggle-btn {
+  position: fixed;
+  top: 30px;
+  left: 20px;
+  background: #1458a7;
+  color: white;
+  border: none;
+  padding: 10px 12px;
+  cursor: pointer;
+  border-radius: 5px;
+  font-size: 20px;
+  z-index: 1001;
+}
+
+/* shift page content */
+
+/* Main content area */
+.main-content {
+  margin-left: 240px;
+  padding: 20px;
+  transition: 0.3s;
+}
+
+/* when sidebar collapsed */
+.sidebar.collapsed ~ .main-content {
+  margin-left: 70px;
+}
+
+
+
+body.collapsed {
+  margin-left: 70px;
+}
+
   </style>
 </head>
 <body>
 
   <!-- Dashboard Button -->
-  <a href="#" class="dashboard-btn" onclick="openAdminDashboard(event)">🏠 Dashboard</a>
+<!-- Sidebar -->
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+
+  <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+
+  <h2 class="logo">📦 Inventra</h2>
+
+  <a href="admin_dashboard.html">🏠 <span class="text">Dashboard</span></a>
+  <a href="Stock.html">📦 <span class="text">Stock</span></a>
+  <a href="Sell.html">🛒 <span class="text">Sell</span></a>
+  <a href="debts.html">💰 <span class="text">Debts</span></a>
+  <a href="sales_report.html">📊 <span class="text">Reports</span></a>
+  <a href="manage_user.html">👥 <span class="text">Users</span></a>
+  <a href="Home Stock.html">🚪 <span class="text">Logout</span></a>
+
+</div>
+<div class="main-content">
 
   <h1>Stock Taking System</h1>
 
+  <!-- everything else goes here -->
+  <!-- buttons, form, table, scripts content etc -->
+
+</div>
+ 
   <!-- Backup / Restore -->
   <div class="btn-container">
     <button class="btn btn-add" onclick="backupProducts()">🧾 Backup Products</button>
@@ -195,9 +292,6 @@
   <button class="btn btn-add" onclick="proceedToSell()">Proceed to Sell</button>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
-<script>
-
-</script>
   <script>
 let products = [];
     function renderTable(list = products) {
@@ -404,13 +498,27 @@ async function syncPendingProducts() {
 window.addEventListener("online", syncPendingProducts);
 
 document.addEventListener("DOMContentLoaded", async () => {
-  await loadProductsFromSupabase();
 
   if (navigator.onLine) {
     await syncPendingProducts();
     await loadProductsFromSupabase();
+  } else {
+    loadProductsFromLocalStorage();
   }
+
 });
+function loadProductsFromLocalStorage() {
+  const savedProducts = localStorage.getItem("products");
+
+  if (savedProducts) {
+    products = JSON.parse(savedProducts);
+    renderTable();
+    console.log("✅ Loaded products from localStorage");
+  } else {
+    products = [];
+    renderTable();
+  }
+}
 async function loadProductsFromSupabase() {
   const { data, error } = await window.supabaseClient
     .from("products")
@@ -418,10 +526,17 @@ async function loadProductsFromSupabase() {
 
   if (error) {
     console.error("Error loading products:", error);
+
+    // Fallback to localStorage
+    loadProductsFromLocalStorage();
     return;
   }
 
   products = data || [];
+
+  // Keep local backup updated
+  localStorage.setItem("products", JSON.stringify(products));
+
   renderTable();
 }
 window.supabaseClient
@@ -438,6 +553,45 @@ window.supabaseClient
     }
   )
   .subscribe();
+  function startRealtime() {
+  if (window.realtimeChannel) return; // prevent duplicates
+  if (!navigator.onLine) return;
+
+  window.realtimeChannel = window.supabaseClient
+    .channel("products-changes")
+    .on(
+      "postgres_changes",
+      { event: "*", schema: "public", table: "products" },
+      () => loadProductsFromSupabase()
+    )
+    .subscribe();
+}
+document.addEventListener("DOMContentLoaded", () => {
+  startRealtime();
+});
+window.addEventListener("online", async () => {
+  await syncPendingProducts();
+  await loadProductsFromSupabase();
+  startRealtime();
+});
+function loadProductsFromLocalStorage() {
+  console.log("Loading from localStorage...");
+
+  const savedProducts = localStorage.getItem("products");
+
+  if (savedProducts) {
+    products = JSON.parse(savedProducts);
+
+    console.log("Loaded products:", products.length);
+
+    renderTable();
+  } else {
+    console.log("No products found");
+  }
+}
+function toggleSidebar() {
+  document.getElementById("sidebar").classList.toggle("active");
+}
   </script>
 </body>
 </html>
