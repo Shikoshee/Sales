@@ -77,14 +77,120 @@
       margin-right: 8px;
       font-weight: bold;
     }
+    /* Sidebar */
+/* Modern Sidebar */
+.sidebar {
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  width: 65px;
+  background: linear-gradient(180deg, #0066ff, #004bb5);
+  border-radius: 18px;
+  overflow: hidden;
+  transition: all 0.35s ease;
+  z-index: 1000;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
+}
+
+.sidebar.expanded {
+  width: 240px;
+}
+
+/* Hamburger Button */
+.toggle-btn {
+  width: 100%;
+  background: transparent;
+  color: white;
+  border: none;
+  padding: 18px;
+  font-size: 26px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.toggle-btn:hover {
+  background: rgba(255,255,255,0.15);
+}
+
+/* Brand */
+.sidebar-header {
+  display: none;
+  color: white;
+  font-size: 1.3rem;
+  font-weight: bold;
+  text-align: center;
+  padding: 10px 15px 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.2);
+}
+
+.sidebar.expanded .sidebar-header {
+  display: block;
+}
+
+/* Menu */
+.sidebar-content {
+  display: none;
+  flex-direction: column;
+  padding: 10px;
+}
+
+.sidebar.expanded .sidebar-content {
+  display: flex;
+}
+
+/* Links */
+.sidebar a {
+  color: white;
+  text-decoration: none;
+  padding: 14px 16px;
+  margin: 4px 0;
+  border-radius: 12px;
+  font-size: 15px;
+  transition: all 0.3s ease;
+}
+
+.sidebar a:hover {
+  background: rgba(255,255,255,0.2);
+  transform: translateX(5px);
+}
+
+/* Active effect */
+.sidebar a:active {
+  transform: scale(0.98);
+}
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: none;
+  z-index: 999;
+}
+
+.overlay.active {
+  display: block;
+}
   </style>
 </head>
 <body>
   
 
   <!-- Dashboard Button -->
-  <a href="#" class="dashboard-btn" onclick="openUserDashboard(event)">🏠 Dashboard</a>
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
 
+  <button class="toggle-btn" onclick="toggleSidebar()">☰></button>
+
+  <div class="sidebar-content">
+    <a href="user_dashboard.html">🏠 Dashboard</a>
+    <a href="user_stock.html">📦 View Stock</a>
+    <a href="Sell.html">🛒 Sell Products</a>
+    <a href="sales_report.html">📊 Sales Reports</a>
+    <a href="debts.html">💰 Debts</a>
+    <a href="index.html">🚪 Logout</a>
+  </div>
+
+</div>
+<div id="overlay" class="overlay" onclick="toggleSidebar()"></div>
   <h1>📦 Stock (User View)</h1>
 
   <!-- Backup and Restore -->
@@ -420,6 +526,9 @@ supabaseClient
     }
   )
   .subscribe();
+  function toggleSidebar() {
+  document.getElementById("sidebar").classList.toggle("expanded");
+}
 
   </script>
 </body>
