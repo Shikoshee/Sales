@@ -819,7 +819,7 @@ document.querySelectorAll(".product-card")
 
   allSales.push(...saleDetails);
   supabaseClient
-  .from("sell")
+  .from("sales")
   .insert(saleDetails)
   .then(({ error }) => {
     if (error) console.error(error);
@@ -1083,7 +1083,7 @@ async function syncAllSalesToSupabase() {
 
   const { error } =
     await supabaseClient
-      .from("sell")
+      .from("sales")
       .insert(uniqueSales);
 
   if (error) {
