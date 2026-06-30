@@ -674,6 +674,7 @@ function toggleDebtorField() {
 
 async function handleSale(printReceipt = false){
 
+  
   const payment =
     document.getElementById("payment").value;
 
@@ -685,28 +686,25 @@ async function handleSale(printReceipt = false){
       .value
       .trim();
 
-    if(!phone){
+    // Only attempt STK push if a phone number was actually entered.
+    // Phone number is now optional — sale can proceed without it.
+    if(phone){
 
-      alert("Enter customer phone number.");
+      const paid = await sendSTKPush(phone);
 
-      return;
-
-    }
-
-    const paid =
-      await sendSTKPush(phone);
-
-    if(!paid){
-
-      alert("Payment cancelled or failed.");
-
-      return;
+      if(!paid){
+        // Don't block the sale — just let the cashier know.
+        const proceed = confirm(
+          "M-Pesa prompt failed or was not confirmed. Record the sale anyway?"
+        );
+        if(!proceed) return;
+      }
 
     }
 
   }
 
-  const result = makeSale();
+  const result = await makeSale();
 
   if(!result) return;
 
@@ -724,7 +722,7 @@ async function handleSale(printReceipt = false){
 
 }
 
-function makeSale(){
+async function makeSale(){
 
   if(saleCompleted){
     alert("Sale already completed!");
@@ -885,18 +883,26 @@ document.querySelectorAll(".product-card")
 
   localStorage.setItem("products", JSON.stringify(products));
 
-  let allSales =
-    JSON.parse(localStorage.getItem("allSales")) || [];
+let allSales =
+  JSON.parse(localStorage.getItem("allSales")) || [];
 
-  allSales.push(...saleDetails);
-  supabaseClient
-  .from("sales")
-  .insert(saleDetails)
-  .then(({ error }) => {
-    if (error) console.error(error);
-  });
+allSales.push(...saleDetails);
+localStorage.setItem("allSales", JSON.stringify(allSales));
 
-  localStorage.setItem("allSales", JSON.stringify(allSales));
+// Wait for Supabase insert to actually finish before returning
+const { error } =
+  await supabaseClient
+    .from("sales")
+    .insert(saleDetails);
+
+if(error){
+  console.error("Supabase insert failed:", error);
+
+  const pending =
+    JSON.parse(localStorage.getItem("pendingSales")) || [];
+  pending.push(...saleDetails);
+  localStorage.setItem("pendingSales", JSON.stringify(pending));
+}
 
   localStorage.removeItem("sellIndices");
 
@@ -993,6 +999,17 @@ function printReceiptPage(data){
 
   const win = window.open("", "", "width=350,height=700");
 
+  // Guard against popup blockers
+  if(!win){
+
+    alert("Popup blocked — please allow popups to print receipts. Redirecting to sales report.");
+
+    window.location.href = "sales_report.html";
+
+    return;
+
+  }
+
   win.document.write(`
 
     <html>
@@ -1014,8 +1031,6 @@ function printReceiptPage(data){
             font-size:12px;
           }
 
-
-          
         </style>
 
       </head>
@@ -1034,13 +1049,40 @@ function printReceiptPage(data){
 
   win.print();
 
+  // Fallback in case onafterprint doesn't fire (e.g. print cancelled in some browsers)
+  let redirected = false;
+
+  function goToReport(){
+
+    if(redirected) return;
+
+    redirected = true;
+
+    window.location.href = "sales_report.html";
+
+  }
+
   win.onafterprint = () => {
 
     win.close();
 
-    window.location.href = "sales_report.html";
+    goToReport();
 
   };
+
+  // Safety net: if the print window gets closed manually
+  // without onafterprint firing, still redirect
+  const checkClosed = setInterval(() => {
+
+    if(win.closed){
+
+      clearInterval(checkClosed);
+
+      goToReport();
+
+    }
+
+  }, 500);
 
 }
 
