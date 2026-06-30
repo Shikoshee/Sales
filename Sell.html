@@ -215,8 +215,28 @@ select{
     <option value="Mpesa">Mpesa</option>
     <option value="Card">Card</option>
     <option value="Debt">Debt</option>
-  </select>
+</select>
 
+<div id="mpesaField" class="hidden">
+
+  <label>Customer Phone Number</label>
+
+  <input
+    type="tel"
+    id="mpesaPhone"
+    placeholder="07XXXXXXXX"
+  >
+
+  <button
+    type="button"
+    class="btn"
+    style="background:#28a745;color:white;margin-top:10px;"
+    onclick="triggerMpesaPrompt()"
+  >
+    📲 Send M-Pesa Prompt
+  </button>
+
+</div>
   <div id="debtorField" class="hidden">
     <label>Debtor Name</label>
     <input type="text" id="debtorName" placeholder="Enter debtor name">
@@ -652,6 +672,57 @@ function toggleDebtorField() {
 }
 
 
+async function handleSale(printReceipt = false){
+
+  const payment =
+    document.getElementById("payment").value;
+
+  if(payment === "Mpesa"){
+
+    const phone =
+      document
+      .getElementById("mpesaPhone")
+      .value
+      .trim();
+
+    if(!phone){
+
+      alert("Enter customer phone number.");
+
+      return;
+
+    }
+
+    const paid =
+      await sendSTKPush(phone);
+
+    if(!paid){
+
+      alert("Payment cancelled or failed.");
+
+      return;
+
+    }
+
+  }
+
+  const result = makeSale();
+
+  if(!result) return;
+
+  alert("Sale completed successfully.");
+
+  if(printReceipt){
+
+    printReceiptPage(result);
+
+  }else{
+
+    window.location.href="sales_report.html";
+
+  }
+
+}
 
 function makeSale(){
 
@@ -844,25 +915,8 @@ document.querySelectorAll(".product-card")
 
 }
 
-function handleSale(printReceipt = false){
 
-  const result = makeSale();
 
-  if(!result) return;
-
-  alert("✅ Sale completed successfully!");
-
-  if(printReceipt){
-
-    printReceiptPage(result);
-
-  } else {
-
-    window.location.href = "sales_report.html";
-
-  }
-
-}
 
 function printReceiptPage(data){
 
@@ -1096,7 +1150,7 @@ async function syncAllSalesToSupabase() {
   } else {
 
     console.log(
-      "✅ allSales synced to sell table"
+      "✅ allSales synced to Sales table"
     );
 
   }
@@ -1119,6 +1173,119 @@ window.addEventListener(
   "online",
   syncAllSalesToSupabase
 );
+function togglePaymentFields(){
+
+  const payment =
+    document.getElementById("payment").value;
+
+  document
+    .getElementById("debtorField")
+    .classList.toggle(
+      "hidden",
+      payment !== "Debt"
+    );
+
+  document
+    .getElementById("mpesaField")
+    .classList.toggle(
+      "hidden",
+      payment !== "Mpesa"
+    );
+
+}
+
+document
+.getElementById("payment")
+.addEventListener(
+  "change",
+  togglePaymentFields
+);
+
+togglePaymentFields();
+async function sendSTKPush(phone){
+
+  const total =
+    parseFloat(
+      document
+      .getElementById("grandTotal")
+      .innerText
+      .replace(/[^0-9.]/g,"")
+    );
+
+  const response =
+    await fetch(
+      "https://quhorqxtzhpuxeujgxfw.supabase.co/stkpush",
+      {
+
+        method:"POST",
+
+        headers:{
+          "Content-Type":"application/json"
+        },
+
+        body:JSON.stringify({
+
+          phone,
+
+          amount:total
+
+        })
+
+      }
+    );
+
+  const result =
+    await response.json();
+
+  return result.success;
+
+}
+async function triggerMpesaPrompt(){
+
+  const phone = document.getElementById("mpesaPhone").value.trim();
+
+  if(!phone){
+    alert("Please enter the customer's phone number.");
+    return;
+  }
+
+  const total = parseFloat(
+    document.getElementById("grandTotal")
+      .innerText.replace(/[^0-9.]/g, "")
+  );
+
+  try{
+
+    const response = await fetch(
+      "https://quhorqxtzhpuxeujgxfw.supabase.co/functions/v1/stkpush",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "apikey": supabaseKey,
+          "Authorization": "Bearer " + supabaseKey
+        },
+        body: JSON.stringify({
+          phone: phone,
+          amount: total
+        })
+      }
+    );
+
+    const result = await response.json();
+
+    if(response.ok){
+      alert("✅ M-Pesa prompt sent successfully. The customer should enter their PIN on their phone.");
+    }else{
+      alert(result.error || "Failed to send M-Pesa prompt.");
+    }
+
+  }catch(err){
+    console.error(err);
+    alert("Unable to connect to the payment server.");
+  }
+
+}
 </script>
 
 </script>
