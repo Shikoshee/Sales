@@ -1,11 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Stock - User View</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; background: #f9f9f9; }
-    h1 { text-align: center; color: #333; }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9f9f9;
+    }
+
+    h1 {
+      text-align: center;
+      color: #333;
+      margin-bottom: 20px;
+    }
+
     table {
       width: 100%;
       border-collapse: collapse;
@@ -13,14 +26,20 @@
       background: #fff;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
+
     table, th, td { border: 1px solid #ddd; }
+
     th {
       background: #28a745;
       color: #fff;
       padding: 10px;
       text-align: center;
     }
+
     td { padding: 8px; text-align: center; }
+
+    input, select { padding: 5px; margin: 3px; }
+
     .btn {
       padding: 6px 12px;
       border: none;
@@ -28,25 +47,13 @@
       cursor: pointer;
       margin: 2px;
     }
-    .btn-sell { background: #28a745; color: #fff; }
 
-    /* Dashboard button style */
-    .dashboard-btn {
-      position: absolute;
-      top: 20px;
-      left: 20px;
-      background: #007BFF;
-      color: #fff;
-      padding: 10px 18px;
-      border-radius: 5px;
-      font-weight: bold;
-      text-decoration: none;
-      transition: background 0.3s;
-    }
-    .dashboard-btn:hover { background: #0056b3; }
+    .btn-sell   { background: #28a745; color: #fff; }
+    .btn-add    { background: #28a745; color: #fff; }
+    .btn-edit   { background: #ffc107; color: #000; }
 
-    /* Search bar */
     .search-bar { margin-top: 20px; text-align: center; }
+
     .search-bar input {
       width: 300px;
       padding: 8px;
@@ -55,152 +62,222 @@
       font-size: 1rem;
     }
 
-    /* Backup/restore buttons */
     .btn-container {
       text-align: center;
       margin-top: 15px;
       margin-bottom: 15px;
     }
 
-    /* Search + Sort Bar */
     .top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin: 20px 0;
     }
-    .top-bar input, .top-bar select {
+
+    .top-bar input, .top-bar select { padding: 8px; font-size: 1rem; }
+
+    .sort-bar label { margin-right: 8px; font-weight: bold; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: 64px;
+      background: #0f172a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 0;
+      gap: 4px;
+      z-index: 1000;
+      transition: width 0.25s ease;
+      overflow: hidden;
+    }
+
+    .sidebar.active {
+      width: 220px;
+      align-items: flex-start;
+      padding: 16px 12px;
+    }
+
+    .sidebar-logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: #1e293b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 8px;
+      flex-shrink: 0;
+    }
+
+    .sidebar.active .sidebar-logo {
+      width: 100%;
+      height: auto;
+      background: transparent;
+      border-radius: 0;
+      flex-direction: row;
+      gap: 10px;
+      padding: 8px 4px;
+      margin-bottom: 4px;
+    }
+
+    .sidebar-logo i { font-size: 20px; color: #60a5fa; }
+
+    .sidebar-logo-text {
+      display: none;
+      font-size: 15px;
+      font-weight: 500;
+      color: #f1f5f9;
+      white-space: nowrap;
+    }
+
+    .sidebar.active .sidebar-logo-text { display: block; }
+
+    .sidebar-divider {
+      width: 36px;
+      height: 0.5px;
+      background: #1e293b;
+      margin: 4px 0 8px;
+      flex-shrink: 0;
+    }
+
+    .sidebar.active .sidebar-divider {
+      width: calc(100% - 8px);
+      margin: 4px 4px 8px;
+    }
+
+    .sidebar a {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      color: #94a3b8;
+      flex-shrink: 0;
+      transition: background 0.15s ease, color 0.15s ease;
+      gap: 10px;
+    }
+
+    .sidebar.active a {
+      width: 100%;
+      height: auto;
+      padding: 10px 12px;
+      justify-content: flex-start;
+    }
+
+    .sidebar a i { font-size: 18px; flex-shrink: 0; }
+    .sidebar.active a i { font-size: 17px; }
+
+    .sidebar a .nav-label {
+      display: none;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .sidebar.active a .nav-label { display: block; }
+
+    .sidebar a:hover { background: #1e293b; color: #e2e8f0; }
+
+    .sidebar a.active-link { background: #1e3a5f; color: #60a5fa; }
+
+    .sidebar a.logout-link { color: #f87171; margin-top: auto; }
+    .sidebar a.logout-link:hover { background: #2d1a1a; }
+
+    .sidebar-spacer { flex: 1; }
+
+    .toggle-btn {
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      background: transparent;
+      color: #60a5fa;
+      border: none;
       padding: 8px;
-      font-size: 1rem;
+      cursor: pointer;
+      border-radius: 6px;
+      font-size: 20px;
+      z-index: 1002;
+      transition: background 0.15s;
     }
-    .sort-bar label {
-      margin-right: 8px;
-      font-weight: bold;
+
+    .toggle-btn:hover { background: #1e293b; }
+
+    /* ── Main content ── */
+    .main-content {
+      margin-left: 64px;
+      padding: 20px;
+      transition: margin-left 0.25s ease;
     }
-    /* Sidebar */
-/* Modern Sidebar */
-.sidebar {
-  position: fixed;
-  top: 15px;
-  left: 15px;
-  width: 65px;
-  background: linear-gradient(180deg, #0066ff, #004bb5);
-  border-radius: 18px;
-  overflow: hidden;
-  transition: all 0.35s ease;
-  z-index: 1000;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.2);
-}
 
-.sidebar.expanded {
-  width: 240px;
-}
-
-/* Hamburger Button */
-.toggle-btn {
-  width: 100%;
-  background: transparent;
-  color: white;
-  border: none;
-  padding: 18px;
-  font-size: 26px;
-  cursor: pointer;
-  transition: 0.3s;
-}
-
-.toggle-btn:hover {
-  background: rgba(255,255,255,0.15);
-}
-
-/* Brand */
-.sidebar-header {
-  display: none;
-  color: white;
-  font-size: 1.3rem;
-  font-weight: bold;
-  text-align: center;
-  padding: 10px 15px 20px;
-  border-bottom: 1px solid rgba(255,255,255,0.2);
-}
-
-.sidebar.expanded .sidebar-header {
-  display: block;
-}
-
-/* Menu */
-.sidebar-content {
-  display: none;
-  flex-direction: column;
-  padding: 10px;
-}
-
-.sidebar.expanded .sidebar-content {
-  display: flex;
-}
-
-/* Links */
-.sidebar a {
-  color: white;
-  text-decoration: none;
-  padding: 14px 16px;
-  margin: 4px 0;
-  border-radius: 12px;
-  font-size: 15px;
-  transition: all 0.3s ease;
-}
-
-.sidebar a:hover {
-  background: rgba(255,255,255,0.2);
-  transform: translateX(5px);
-}
-
-/* Active effect */
-.sidebar a:active {
-  transform: scale(0.98);
-}
-.overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.4);
-  display: none;
-  z-index: 999;
-}
-
-.overlay.active {
-  display: block;
-}
+    .sidebar.active ~ .main-content { margin-left: 220px; }
   </style>
 </head>
 <body>
-  
 
-  <!-- Dashboard Button -->
+<!-- Toggle Button -->
+<button class="toggle-btn" onclick="toggleSidebar()" aria-label="Toggle menu">
+  <i class="ti ti-menu-2"></i>
+</button>
+
 <!-- Sidebar -->
 <div class="sidebar" id="sidebar">
-
-  <button class="toggle-btn" onclick="toggleSidebar()">☰></button>
-
-  <div class="sidebar-content">
-    <a href="user_dashboard.html">🏠 Dashboard</a>
-    <a href="user_stock.html">📦 View Stock</a>
-    <a href="Sell.html">🛒 Sell Products</a>
-    <a href="sales_report.html">📊 Sales Reports</a>
-    <a href="debts.html">💰 Debts</a>
-    <a href="index.html">🚪 Logout</a>
+  <div class="sidebar-logo">
+    <i class="ti ti-package" aria-hidden="true"></i>
+    <span class="sidebar-logo-text">Inventra</span>
   </div>
 
+  <div class="sidebar-divider"></div>
+
+  <a href="user_dashboard.html">
+    <i class="ti ti-home" aria-hidden="true"></i>
+    <span class="nav-label">Dashboard</span>
+  </a>
+  <a href="user_stock.html">
+    <i class="ti ti-box" aria-hidden="true"></i>
+    <span class="nav-label">View Stock</span>
+  </a>
+  <a href="Sell.html">
+    <i class="ti ti-shopping-cart" aria-hidden="true"></i>
+    <span class="nav-label">Sell Products</span>
+  </a>
+  <a href="sales_report.html">
+    <i class="ti ti-chart-bar" aria-hidden="true"></i>
+    <span class="nav-label">Sales Reports</span>
+  </a>
+  <a href="debts.html">
+    <i class="ti ti-coin" aria-hidden="true"></i>
+    <span class="nav-label">Debts</span>
+  </a>
+
+  <div class="sidebar-spacer"></div>
+  <div class="sidebar-divider"></div>
+
+  <a href="index.html" class="logout-link">
+    <i class="ti ti-logout" aria-hidden="true"></i>
+    <span class="nav-label">Logout</span>
+  </a>
 </div>
-<div id="overlay" class="overlay" onclick="toggleSidebar()"></div>
+
+<!-- Main Content -->
+<div class="main-content">
+
   <h1>📦 Stock (User View)</h1>
 
-  <!-- Backup and Restore -->
+  <!-- Backup / Restore -->
   <div class="btn-container">
     <button class="btn btn-add" onclick="backupProducts()">🧾 Backup Products</button>
     <button class="btn btn-edit" onclick="document.getElementById('restoreFile').click()">🔁 Restore Products</button>
     <input type="file" id="restoreFile" accept=".json" style="display:none" onchange="restoreProducts(event)">
   </div>
 
-  <!-- Search + Sort Bar -->
+  <!-- Search + Sort -->
   <div class="top-bar">
     <div class="search-bar">
       <input type="text" id="searchInput" placeholder="Search by product name..." onkeyup="filterProducts()">
@@ -216,7 +293,7 @@
     </div>
   </div>
 
-  <!-- Stock table -->
+  <!-- Stock Table -->
   <table id="stockTable">
     <thead>
       <tr>
@@ -236,128 +313,129 @@
     <tbody></tbody>
   </table>
 
-  <button class="btn btn-sell" onclick="proceedToSell()">Proceed to Sell</button>
+  <div class="btn-container" style="margin-top:15px;">
+    <button class="btn btn-sell" onclick="proceedToSell()">Proceed to Sell</button>
+  </div>
+
+</div>
+<!-- End .main-content -->
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
 
-  <script>
 let products = [];
-    function renderTable(data = products) {
-      const tbody = document.querySelector("#stockTable tbody");
-      tbody.innerHTML = "";
-      if (data.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="11">No products available.</td></tr>`;
-        return;
-      }
-      data.forEach((prod, index) => {
-        tbody.innerHTML += `
-          <tr>
-            <td><input type="checkbox" class="sell-check" value="${index}"></td>
-            <td>${prod.productName}</td>
-            <td>${prod.buyingPrice}</td>
-            <td>${prod.wholesalePrice}</td>
-            <td>${prod.retailPrice}</td>
-            <td>${prod.weight}</td>
-            <td>${prod.company}</td>
-            <td>${prod.category}</td>
-            <td>${prod.details}</td>
-            <td>${prod.quantity}</td>
-            <td>${prod.expiryDate}</td>
-          </tr>`;
-      });
-    }
-
-    // Search function
-    function filterProducts() {
-      const query = document.getElementById("searchInput").value.toLowerCase();
-      const filtered = products.filter(prod =>
-        prod.productName.toLowerCase().includes(query)
-      );
-      renderTable(filtered);
-    }
-
-    // Sort function
-    function sortProducts() {
-      const sortType = document.getElementById("sortOption").value;
-      if (sortType === "alphabetical") {
-        products.sort((a, b) => a.productName.localeCompare(b.productName));
-      } else if (sortType === "quantity") {
-        products.sort((a, b) => a.quantity - b.quantity);
-      } else if (sortType === "expiry") {
-        products.sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate));
-      }
-      renderTable();
-    }
-
-    // Proceed to sell
-    function proceedToSell() {
-      const selected = Array.from(document.querySelectorAll(".sell-check:checked")).map(cb => parseInt(cb.value));
-      if (selected.length === 0) {
-        alert("Select at least one product to sell!");
-        return;
-      }
-  localStorage.setItem("sellIndices", JSON.stringify(selected));
-  window.location.href = "Sell.html";
-    }
-
-    // Backup Products
-    function backupProducts() {
-      if (!products.length) return alert("No products to back up.");
-      const blob = new Blob([JSON.stringify(products)], { type: "application/json" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = `products_backup_${new Date().toISOString().split("T")[0]}.json`;
-      a.click();
-    }
-
-    // Restore Products
-    function restoreProducts(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = e => {
-        try {
-          const restored = JSON.parse(e.target.result);
-          if (Array.isArray(restored)) {
-            products = restored;
-            localStorage.setItem("products", JSON.stringify(products));
-            renderTable();
-            alert("✅ Products restored successfully!");
-          } else {
-            alert("❌ Invalid file format.");
-          }
-        } catch {
-          alert("❌ Error reading file.");
-        }
-      };
-      reader.readAsText(file);
-      
-    }
-
-    // Initial render
-    renderTable();
-
-    // Ensure dashboard button always opens the user dashboard
-    function openUserDashboard(e) {
-      if (e) e.preventDefault();
-      window.location.href = 'user_dashboard.html';
-    }
-    // SUPABASE 
-
-
 
 const supabaseUrl = "https://quhorqxtzhpuxeujgxfw.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1aG9ycXh0emhwdXhldWpneGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNTI2NzgsImV4cCI6MjA5NTYyODY3OH0._bldtcFHB59obsAsxC7ctKn-EqoQqKnwLTXowo2ppF8";
 
+const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-const supabaseClient = supabase.createClient(
-  supabaseUrl,
-  supabaseKey
-);
+// ── Render Table ──
+function renderTable(data = products) {
+  const tbody = document.querySelector("#stockTable tbody");
+  tbody.innerHTML = "";
+  if (!data.length) {
+    tbody.innerHTML = `<tr><td colspan="11">No products available.</td></tr>`;
+    return;
+  }
+  data.forEach((prod, index) => {
+    tbody.innerHTML += `
+      <tr>
+        <td><input type="checkbox" class="sell-check" value="${index}"></td>
+        <td>${prod.productName}</td>
+        <td>${prod.buyingPrice}</td>
+        <td>${prod.wholesalePrice}</td>
+        <td>${prod.retailPrice}</td>
+        <td>${prod.weight || ""} ${prod.weightUnit || ""}</td>
+        <td>${prod.company}</td>
+        <td>${prod.category}</td>
+        <td>${prod.details}</td>
+        <td>${prod.quantity}</td>
+        <td>${prod.expiryDate}</td>
+      </tr>`;
+  });
+}
 
+// ── Filter ──
+function filterProducts() {
+  const query = document.getElementById("searchInput").value.toLowerCase();
+  renderTable(products.filter(p => p.productName.toLowerCase().includes(query)));
+}
+
+// ── Sort ──
+function sortProducts() {
+  const sortType = document.getElementById("sortOption").value;
+  if (sortType === "alphabetical") {
+    products.sort((a, b) => a.productName.localeCompare(b.productName));
+  } else if (sortType === "quantity") {
+    products.sort((a, b) => a.quantity - b.quantity);
+  } else if (sortType === "expiry") {
+    products.sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate));
+  }
+  renderTable();
+}
+
+// ── Proceed to Sell ──
+function proceedToSell() {
+  const selected = Array.from(
+    document.querySelectorAll(".sell-check:checked")
+  ).map(cb => parseInt(cb.value));
+
+  if (!selected.length) {
+    alert("Select at least one product to sell!");
+    return;
+  }
+  localStorage.setItem("sellIndices", JSON.stringify(selected));
+  window.location.href = "Sell.html";
+}
+
+// ── Backup ──
+function backupProducts() {
+  if (!products.length) return alert("No products to back up.");
+  const blob = new Blob([JSON.stringify(products)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `products_backup_${new Date().toISOString().split("T")[0]}.json`;
+  a.click();
+}
+
+// ── Restore ──
+function restoreProducts(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const restored = JSON.parse(e.target.result);
+      if (Array.isArray(restored)) {
+        products = restored;
+        localStorage.setItem("products", JSON.stringify(products));
+        renderTable();
+        alert("✅ Products restored successfully!");
+        if (navigator.onLine) syncProductsToSupabase();
+      } else {
+        alert("❌ Invalid file format.");
+      }
+    } catch {
+      alert("❌ Error reading file.");
+    }
+  };
+  reader.readAsText(file);
+}
+
+// ── Toggle Sidebar ──
+function toggleSidebar() {
+  document.getElementById("sidebar").classList.toggle("active");
+}
+
+// ── Highlight active nav link ──
+document.querySelectorAll(".sidebar a").forEach(link => {
+  if (link.href === window.location.href) link.classList.add("active-link");
+});
+
+// ── Load from Supabase ──
 async function loadProducts() {
-
   try {
-
     const { data, error } = await supabaseClient
       .from("products")
       .select("*")
@@ -366,170 +444,59 @@ async function loadProducts() {
     if (error) throw error;
 
     products = data || [];
-
-    // Cache locally for offline use
-    localStorage.setItem(
-      "products",
-      JSON.stringify(products)
-    );
-
+    localStorage.setItem("products", JSON.stringify(products));
     renderTable();
-
     console.log("✅ Products loaded from Supabase");
 
   } catch (err) {
-
-    console.error(
-      "Supabase load failed:",
-      err
-    );
-
-    // Offline fallback
-    products =
-      JSON.parse(
-        localStorage.getItem("products")
-      ) || [];
-
+    console.error("Supabase load failed:", err);
+    products = JSON.parse(localStorage.getItem("products")) || [];
     renderTable();
-
-    console.log(
-      "📦 Loaded products from local cache"
-    );
-
+    console.log("📦 Loaded from local cache");
   }
-
 }
-// Sync all products from localStorage to Supabase
+
+// ── Sync local → Supabase ──
 async function syncProductsToSupabase() {
-
-  const products =
-    JSON.parse(localStorage.getItem("products")) || [];
-
-  if (!products.length) {
-    console.log("No products to sync");
-    return;
-  }
-
-  // Remove duplicates by product name
-  const uniqueProducts = [];
+  const local = JSON.parse(localStorage.getItem("products")) || [];
+  if (!local.length) return;
 
   const seen = new Set();
-
-  products.forEach(product => {
-
-    const key =
-      product.productName?.trim().toLowerCase();
-
-    if (!seen.has(key)) {
-
-      seen.add(key);
-
-      uniqueProducts.push(product);
-
-    }
-
+  const unique = local.filter(p => {
+    const key = p.productName?.trim().toLowerCase();
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
   });
 
   const { error } = await supabaseClient
     .from("products")
-    .upsert(uniqueProducts, {
-      onConflict: "id"
-    });
+    .upsert(unique, { onConflict: "id" });
 
-  if (error) {
-
-    console.error(
-      "Products Sync Error:",
-      error
-    );
-
-  } else {
-
-    console.log(
-      "✅ Products synced to Supabase"
-    );
-
-  }
-
+  if (error) console.error("Sync error:", error);
+  else console.log("✅ Products synced to Supabase");
 }
 
-// Auto sync when page opens
-document.addEventListener(
-  "DOMContentLoaded",
-  async () => {
-
-    await loadProducts();
-
-    if (navigator.onLine) {
-
-      await syncProductsToSupabase();
-
-      await loadProducts();
-
-    }
-
-  }
-);
-
-// Auto sync when internet returns
-window.addEventListener(
-  "online",
-  async () => {
-
-    await syncProductsToSupabase();
-
-    await loadProducts();
-
-  }
-);
-// Auto sync after restore
-const originalRestoreProducts =
-  restoreProducts;
-
-restoreProducts = function(event) {
-
-  originalRestoreProducts(event);
-
-  setTimeout(() => {
-
-    syncProductsToSupabase();
-
-  }, 1000);
-
-};
-
+// ── Real-time updates ──
 supabaseClient
   .channel("products-live")
-  .on(
-    "postgres_changes",
-    {
-      event: "*",
-      schema: "public",
-      table: "products"
-    },
-    () => {
-      loadProducts();
-    }
+  .on("postgres_changes",
+    { event: "*", schema: "public", table: "products" },
+    () => loadProducts()
   )
   .subscribe();
-supabaseClient
-  .channel("products-live")
-  .on(
-    "postgres_changes",
-    {
-      event: "*",
-      schema: "public",
-      table: "products"
-    },
-    () => {
-      loadProducts();
-    }
-  )
-  .subscribe();
-  function toggleSidebar() {
-  document.getElementById("sidebar").classList.toggle("expanded");
-}
 
-  </script>
+// ── Init ──
+document.addEventListener("DOMContentLoaded", async () => {
+  await loadProducts();
+  if (navigator.onLine) await syncProductsToSupabase();
+});
+
+window.addEventListener("online", async () => {
+  await syncProductsToSupabase();
+  await loadProducts();
+});
+
+</script>
 </body>
 </html>
