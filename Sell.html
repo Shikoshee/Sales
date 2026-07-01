@@ -190,7 +190,7 @@ select{
   <h3>Customer Details</h3>
 
   <label>Customer Name</label>
-  <input type="text" id="customerName" placeholder="Walk-in Customer">
+  <input type="text" id="customerName" placeholder="N/A">
 
   <label>Sale Type</label>
   <select id="saleType">
@@ -740,7 +740,7 @@ async function makeSale(){
 
   const customerName =
     document.getElementById("customerName").value.trim()
-    || "Walk-in Customer";
+    || "N/A";
 
   const debtorName =
     document.getElementById("debtorName").value.trim();
@@ -1246,55 +1246,57 @@ document
 togglePaymentFields();
 async function sendSTKPush(phone){
 
-  const total =
+  const amount =
     parseFloat(
       document
-      .getElementById("grandTotal")
-      .innerText
-      .replace(/[^0-9.]/g,"")
-    );
+      .getElementById("amountPaid")
+      .value
+    ) || 0;
+
+  if(amount <= 0){
+    alert("Enter the amount paid before sending M-Pesa prompt.");
+    return false;
+  }
 
   const response =
     await fetch(
       "https://quhorqxtzhpuxeujgxfw.supabase.co/stkpush",
       {
-
         method:"POST",
-
         headers:{
           "Content-Type":"application/json"
         },
-
         body:JSON.stringify({
-
           phone,
-
-          amount:total
-
+          amount: amount
         })
-
       }
     );
 
-  const result =
-    await response.json();
+  const result = await response.json();
 
   return result.success;
 
 }
 async function triggerMpesaPrompt(){
 
-  const phone = document.getElementById("mpesaPhone").value.trim();
+  const phone =
+    document.getElementById("mpesaPhone").value.trim();
 
   if(!phone){
     alert("Please enter the customer's phone number.");
     return;
   }
 
-  const total = parseFloat(
-    document.getElementById("grandTotal")
-      .innerText.replace(/[^0-9.]/g, "")
-  );
+  const amount =
+    parseFloat(
+      document.getElementById("amountPaid").value
+    ) || 0;
+
+  if(amount <= 0){
+    alert("Please enter the amount paid before sending M-Pesa prompt.");
+    return;
+  }
 
   try{
 
@@ -1309,7 +1311,7 @@ async function triggerMpesaPrompt(){
         },
         body: JSON.stringify({
           phone: phone,
-          amount: total
+          amount: amount
         })
       }
     );
@@ -1317,7 +1319,7 @@ async function triggerMpesaPrompt(){
     const result = await response.json();
 
     if(response.ok){
-      alert("✅ M-Pesa prompt sent successfully. The customer should enter their PIN on their phone.");
+      alert(`✅ M-Pesa prompt of Ksh ${amount.toLocaleString()} sent successfully. The customer should enter their PIN on their phone.`);
     }else{
       alert(result.error || "Failed to send M-Pesa prompt.");
     }
