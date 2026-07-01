@@ -1,18 +1,24 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Stock Taking System</title>
   <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
     body {
       font-family: Arial, sans-serif;
-      margin: 20px;
       background: #f9f9f9;
     }
+
     h1 {
       text-align: center;
       color: #333;
+      margin-bottom: 20px;
     }
+
     table {
       width: 100%;
       border-collapse: collapse;
@@ -20,29 +26,28 @@
       background: #fff;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-    table, th, td {
-      border: 1px solid #ddd;
-    }
+
+    table, th, td { border: 1px solid #ddd; }
+
     th {
       background: #007BFF;
       color: #fff;
       padding: 10px;
       text-align: center;
     }
-    td {
-      padding: 8px;
-      text-align: center;
-    }
-    input, select {
-      padding: 5px;
-      margin: 3px;
-    }
+
+    td { padding: 8px; text-align: center; }
+
+    input, select { padding: 5px; margin: 3px; }
+
     .form-container {
       background: #fff;
       padding: 15px;
       border-radius: 8px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      margin-bottom: 15px;
     }
+
     .btn {
       padding: 6px 12px;
       border: none;
@@ -50,15 +55,13 @@
       cursor: pointer;
       margin: 2px;
     }
-    .btn-add { background: #28a745; color: #fff; }
-    .btn-edit { background: #ffc107; color: #000; }
+
+    .btn-add    { background: #28a745; color: #fff; }
+    .btn-edit   { background: #ffc107; color: #000; }
     .btn-delete { background: #dc3545; color: #fff; }
 
-    
-    .search-bar {
-      margin-top: 20px;
-      text-align: center;
-    }
+    .search-bar { margin-top: 20px; text-align: center; }
+
     .search-bar input {
       width: 300px;
       padding: 8px;
@@ -66,192 +69,262 @@
       border-radius: 5px;
       font-size: 1rem;
     }
+
     .btn-container {
       text-align: center;
       margin-top: 15px;
       margin-bottom: 15px;
     }
+
     .top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin: 20px 0;
     }
-    .top-bar input, .top-bar select {
+
+    .top-bar input, .top-bar select { padding: 8px; font-size: 1rem; }
+
+    .sort-bar label { margin-right: 8px; font-weight: bold; }
+
+    .weight-group { display: flex; gap: 8px; margin: 3px; }
+    .weight-group input, .weight-group select { flex: 1; }
+
+    .hidden { display: none; }
+
+    /* ── Sidebar ── */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: 64px;
+      background: #0f172a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 0;
+      gap: 4px;
+      z-index: 1000;
+      transition: width 0.25s ease;
+      overflow: hidden;
+    }
+
+    .sidebar.active {
+      width: 220px;
+      align-items: flex-start;
+      padding: 16px 12px;
+    }
+
+    .sidebar-logo {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: #1e293b;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 8px;
+      flex-shrink: 0;
+    }
+
+    .sidebar.active .sidebar-logo {
+      width: 100%;
+      height: auto;
+      background: transparent;
+      border-radius: 0;
+      flex-direction: row;
+      gap: 10px;
+      padding: 8px 4px;
+      margin-bottom: 4px;
+    }
+
+    .sidebar-logo i { font-size: 20px; color: #60a5fa; }
+
+    .sidebar-logo-text {
+      display: none;
+      font-size: 15px;
+      font-weight: 500;
+      color: #f1f5f9;
+      white-space: nowrap;
+    }
+
+    .sidebar.active .sidebar-logo-text { display: block; }
+
+    .sidebar-divider {
+      width: 36px;
+      height: 0.5px;
+      background: #1e293b;
+      margin: 4px 0 8px;
+      flex-shrink: 0;
+    }
+
+    .sidebar.active .sidebar-divider {
+      width: calc(100% - 8px);
+      margin: 4px 4px 8px;
+    }
+
+    .sidebar a {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      text-decoration: none;
+      color: #94a3b8;
+      flex-shrink: 0;
+      transition: background 0.15s ease, color 0.15s ease;
+      gap: 10px;
+    }
+
+    .sidebar.active a {
+      width: 100%;
+      height: auto;
+      padding: 10px 12px;
+      justify-content: flex-start;
+    }
+
+    .sidebar a i { font-size: 18px; flex-shrink: 0; }
+    .sidebar.active a i { font-size: 17px; }
+
+    .sidebar a .nav-label {
+      display: none;
+      font-size: 14px;
+      white-space: nowrap;
+    }
+
+    .sidebar.active a .nav-label { display: block; }
+
+    .sidebar a:hover { background: #1e293b; color: #e2e8f0; }
+
+    .sidebar a.active-link { background: #1e3a5f; color: #60a5fa; }
+
+    .sidebar a.logout-link { color: #f87171; margin-top: auto; }
+    .sidebar a.logout-link:hover { background: #2d1a1a; }
+
+    .sidebar-spacer { flex: 1; }
+
+    .toggle-btn {
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      background: transparent;
+      color: #60a5fa;
+      border: none;
       padding: 8px;
-      font-size: 1rem;
+      cursor: pointer;
+      border-radius: 6px;
+      font-size: 20px;
+      z-index: 1002;
+      transition: background 0.15s;
     }
-    .sort-bar label {
-      margin-right: 8px;
-      font-weight: bold;
+
+    .toggle-btn:hover { background: #1e293b; }
+
+    /* ── Main content ── */
+    .main-content {
+      margin-left: 64px;
+      padding: 20px;
+      transition: margin-left 0.25s ease;
     }
-    .hidden {
-  display: none;
-}
-/* Sidebar */
-.sidebar {
-  position: fixed;
-  top: 10px;
-  left: 10px;
-  width: 0;              /* hidden by default */
-  height: auto;
-  background: #007BFF;
-  color: white;
-  overflow: hidden;
-  transition: width 0.3s ease;
-  border-radius: 8px;
-  z-index: 1000;
-  padding: 0;
-}
 
-/* Expanded sidebar */
-.sidebar.active {
-  width: 240px;
-  padding: 15px;
-}
-
-/* Logo and links hidden by default */
-.logo,
-.sidebar a {
-  display: none;
-}
-
-/* Show when opened */
-.sidebar.active .logo,
-.sidebar.active a {
-  display: flex;
-}
-
-/* Logo */
-.logo {
-  justify-content: center;
-  margin: 10px 0 20px;
-  font-size: 1.2rem;
-}
-
-/* Links */
-.sidebar a {
-  color: white;
-  text-decoration: none;
-  padding: 10px;
-  border-radius: 6px;
-  align-items: center;
-  gap: 10px;
-}
-
-.sidebar a:hover {
-  background: rgba(255,255,255,0.2);
-}
-
-/* Always visible menu button */
-.toggle-btn {
-  position: fixed;
-  top: 30px;
-  left: 20px;
-  background: #1458a7;
-  color: white;
-  border: none;
-  padding: 10px 12px;
-  cursor: pointer;
-  border-radius: 5px;
-  font-size: 20px;
-  z-index: 1001;
-}
-
-/* shift page content */
-
-/* Main content area */
-.main-content {
-  margin-left: 240px;
-  padding: 20px;
-  transition: 0.3s;
-}
-
-/* when sidebar collapsed */
-.sidebar.collapsed ~ .main-content {
-  margin-left: 70px;
-}
-
-
-
-body.collapsed {
-  margin-left: 70px;
-}
-
+    .sidebar.active ~ .main-content { margin-left: 220px; }
   </style>
 </head>
 <body>
 
-  <!-- Dashboard Button -->
-<!-- Sidebar -->
+<!-- Toggle Button -->
+<button class="toggle-btn" onclick="toggleSidebar()" aria-label="Toggle menu">
+  <i class="ti ti-menu-2"></i>
+</button>
+
 <!-- Sidebar -->
 <div class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <i class="ti ti-package" aria-hidden="true"></i>
+    <span class="sidebar-logo-text">Inventra</span>
+  </div>
 
-  <button class="toggle-btn" onclick="toggleSidebar()">☰</button>
+  <div class="sidebar-divider"></div>
 
-  <h2 class="logo">📦 Inventra</h2>
+  <a href="admin_dashboard.html">
+    <i class="ti ti-home" aria-hidden="true"></i>
+    <span class="nav-label">Dashboard</span>
+  </a>
+  <a href="Stock.html">
+    <i class="ti ti-box" aria-hidden="true"></i>
+    <span class="nav-label">Stock</span>
+  </a>
+  <a href="Sell.html">
+    <i class="ti ti-shopping-cart" aria-hidden="true"></i>
+    <span class="nav-label">Sell</span>
+  </a>
+  <a href="debts.html">
+    <i class="ti ti-coin" aria-hidden="true"></i>
+    <span class="nav-label">Debts</span>
+  </a>
+  <a href="sales_report.html">
+    <i class="ti ti-chart-bar" aria-hidden="true"></i>
+    <span class="nav-label">Reports</span>
+  </a>
+  <a href="manage_user.html">
+    <i class="ti ti-users" aria-hidden="true"></i>
+    <span class="nav-label">Users</span>
+  </a>
 
-  <a href="admin_dashboard.html">🏠 <span class="text">Dashboard</span></a>
-  <a href="Stock.html">📦 <span class="text">Stock</span></a>
-  <a href="Sell.html">🛒 <span class="text">Sell</span></a>
-  <a href="debts.html">💰 <span class="text">Debts</span></a>
-  <a href="sales_report.html">📊 <span class="text">Reports</span></a>
-  <a href="manage_user.html">👥 <span class="text">Users</span></a>
-  <a href="Home Stock.html">🚪 <span class="text">Logout</span></a>
+  <div class="sidebar-spacer"></div>
+  <div class="sidebar-divider"></div>
 
+  <a href="Home Stock.html" class="logout-link">
+    <i class="ti ti-logout" aria-hidden="true"></i>
+    <span class="nav-label">Logout</span>
+  </a>
 </div>
+
+<!-- Main Content -->
 <div class="main-content">
 
   <h1>Stock Taking System</h1>
 
-  <!-- everything else goes here -->
-  <!-- buttons, form, table, scripts content etc -->
-
-</div>
- 
   <!-- Backup / Restore -->
   <div class="btn-container">
     <button class="btn btn-add" onclick="backupProducts()">🧾 Backup Products</button>
     <button class="btn btn-edit" onclick="document.getElementById('restoreFile').click()">🔁 Restore Products</button>
     <input type="file" id="restoreFile" accept=".json" style="display:none" onchange="restoreProducts(event)">
   </div>
-  <!-- Form to add products -->
-   <!-- Add Product Button -->
-<div class="btn-container">
-  <button class="btn btn-add" onclick="toggleForm()">➕ Add Product</button>
-</div>
 
-<!-- Hidden Form -->
-<div id="formContainer" class="form-container hidden">
-
-  <input type="text" id="productName" placeholder="Product Name">
-  <input type="number" id="buyingPrice" placeholder="Buying Price">
-  <input type="number" id="wholesalePrice" placeholder="Wholesale Price">
-  <input type="number" id="retailPrice" placeholder="Retail Price">
-  <!--<input type="text" id="weight" placeholder="Weight">-->
-   <!-- Weight Section -->
-  <div class="weight-group">
-    <input type="number" id="weight" placeholder="Weight">
-    
-    <select id="weightUnit">
-      <option value="">Select Unit</option>
-      <option value="g">Grams (g)</option>
-      <option value="kg">Kilograms (kg)</option>
-      <option value="ml">Millilitres (ml)</option>
-      <option value="l">Litres (L)</option>
-      <option value="pcs">Pieces</option>
-      <option value="packs">Packs</option>
-    </select>
+  <!-- Add Product Button -->
+  <div class="btn-container">
+    <button class="btn btn-add" onclick="toggleForm()">➕ Add Product</button>
   </div>
-  <input type="text" id="company" placeholder="Company">
-  <input type="text" id="category" placeholder="Category">
-  <input type="text" id="details" placeholder="Details">
-  <input type="number" id="quantity" placeholder="Quantity">
-  <input type="date" id="expiryDate">
 
-  <button class="btn btn-add" onclick="addProduct()">Add Product</button>
+  <!-- Add Product Form -->
+  <div id="formContainer" class="form-container hidden">
+    <input type="text"    id="productName"    placeholder="Product Name">
+    <input type="number"  id="buyingPrice"    placeholder="Buying Price">
+    <input type="number"  id="wholesalePrice" placeholder="Wholesale Price">
+    <input type="number"  id="retailPrice"    placeholder="Retail Price">
+    <div class="weight-group">
+      <input type="number" id="weight" placeholder="Weight">
+      <select id="weightUnit">
+        <option value="">Select Unit</option>
+        <option value="g">Grams (g)</option>
+        <option value="kg">Kilograms (kg)</option>
+        <option value="ml">Millilitres (ml)</option>
+        <option value="l">Litres (L)</option>
+        <option value="pcs">Pieces</option>
+        <option value="packs">Packs</option>
+      </select>
+    </div>
+    <input type="text"   id="company"    placeholder="Company">
+    <input type="text"   id="category"   placeholder="Category">
+    <input type="text"   id="details"    placeholder="Details">
+    <input type="number" id="quantity"   placeholder="Quantity">
+    <input type="date"   id="expiryDate">
+    <button class="btn btn-add" onclick="addProduct()">Add Product</button>
+  </div>
 
-</div>
   <!-- Search + Sort -->
   <div class="top-bar">
     <div class="search-bar">
@@ -289,88 +362,105 @@ body.collapsed {
     <tbody></tbody>
   </table>
 
-  <button class="btn btn-add" onclick="proceedToSell()">Proceed to Sell</button>
+  <div class="btn-container" style="margin-top:15px;">
+    <button class="btn btn-add" onclick="proceedToSell()">Proceed to Sell</button>
+  </div>
+
+</div>
+<!-- End .main-content -->
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script>
 
-  <script>
 let products = [];
-    function renderTable(list = products) {
-      const tbody = document.querySelector("#stockTable tbody");
-      tbody.innerHTML = "";
-      list.forEach((prod, index) => {
-        let row = `
-          <tr>
-            <td><input type="checkbox" class="sell-check" value="${index}"></td>
-            <td>${prod.productName}</td>
-            <td>${prod.buyingPrice}</td>
-            <td>${prod.wholesalePrice}</td>
-            <td>${prod.retailPrice}</td>
-            <td>${prod.weight}</td>
-            <td>${prod.company}</td>
-            <td>${prod.category}</td>
-            <td>${prod.details}</td>
-            <td>${prod.quantity}</td>
-            <td>${prod.expiryDate}</td>
-            <td>
-              <button class="btn btn-edit" onclick="editProduct(${index})">Edit</button>
-              <button class="btn btn-delete" onclick="deleteProduct(${index})">Delete</button>
-            </td>
-          </tr>`;
-        tbody.innerHTML += row;
-      });
-      localStorage.setItem("products", JSON.stringify(products));
-    }
 
-    function proceedToSell() {
-      let selected = [];
-      document.querySelectorAll(".sell-check:checked").forEach(cb => {
-        selected.push(parseInt(cb.value));
-      });
-      if (selected.length === 0) {
-        alert("Select at least one product to sell!");
-        return;
-      }
+const supabaseUrl = "https://quhorqxtzhpuxeujgxfw.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1aG9ycXh0emhwdXhldWpneGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNTI2NzgsImV4cCI6MjA5NTYyODY3OH0._bldtcFHB59obsAsxC7ctKn-EqoQqKnwLTXowo2ppF8";
+
+window.supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+// ── Render Table ──
+function renderTable(list = products) {
+  const tbody = document.querySelector("#stockTable tbody");
+  tbody.innerHTML = "";
+  list.forEach((prod, index) => {
+    tbody.innerHTML += `
+      <tr>
+        <td><input type="checkbox" class="sell-check" value="${index}"></td>
+        <td>${prod.productName}</td>
+        <td>${prod.buyingPrice}</td>
+        <td>${prod.wholesalePrice}</td>
+        <td>${prod.retailPrice}</td>
+        <td>${prod.weight} ${prod.weightUnit || ""}</td>
+        <td>${prod.company}</td>
+        <td>${prod.category}</td>
+        <td>${prod.details}</td>
+        <td>${prod.quantity}</td>
+        <td>${prod.expiryDate}</td>
+        <td>
+          <button class="btn btn-edit"   onclick="editProduct(${index})">Edit</button>
+          <button class="btn btn-delete" onclick="deleteProduct(${index})">Delete</button>
+        </td>
+      </tr>`;
+  });
+  localStorage.setItem("products", JSON.stringify(products));
+}
+
+// ── Proceed to Sell ──
+function proceedToSell() {
+  const selected = [];
+  document.querySelectorAll(".sell-check:checked").forEach(cb => {
+    selected.push(parseInt(cb.value));
+  });
+  if (selected.length === 0) {
+    alert("Select at least one product to sell!");
+    return;
+  }
   localStorage.setItem("sellIndices", JSON.stringify(selected));
   window.location.href = "Sell.html";
-    }
-
-    async function addProduct() {
-      
-      let product = {
-        productName: document.getElementById("productName").value,
-        buyingPrice: document.getElementById("buyingPrice").value,
-        wholesalePrice: document.getElementById("wholesalePrice").value,
-        retailPrice: document.getElementById("retailPrice").value,
-        weight: document.getElementById("weight").value,
-        company: document.getElementById("company").value,
-        category: document.getElementById("category").value,
-        details: document.getElementById("details").value,
-        quantity: document.getElementById("quantity").value,
-        expiryDate: document.getElementById("expiryDate").value,
-      };
-      if (!product.productName) {
-        alert("Product Name is required!");
-        return;
-      }
-     products.push(product);
-renderTable();
-clearForm();
-
-queueProductForSync(product);
-
-if (navigator.onLine) {
-  await syncPendingProducts();
-  await loadProductsFromSupabase();
 }
-    }
 
-    function clearForm() {
-      document.querySelectorAll(".form-container input").forEach(input => input.value = "");
-    }
+// ── Add Product ──
+async function addProduct() {
+  const product = {
+    productName:    document.getElementById("productName").value.trim(),
+    buyingPrice:    document.getElementById("buyingPrice").value,
+    wholesalePrice: document.getElementById("wholesalePrice").value,
+    retailPrice:    document.getElementById("retailPrice").value,
+    weight:         document.getElementById("weight").value,
+    weightUnit:     document.getElementById("weightUnit").value,
+    company:        document.getElementById("company").value.trim(),
+    category:       document.getElementById("category").value.trim(),
+    details:        document.getElementById("details").value.trim(),
+    quantity:       document.getElementById("quantity").value,
+    expiryDate:     document.getElementById("expiryDate").value,
+  };
 
-    async function deleteProduct(index) {
+  if (!product.productName) {
+    alert("Product Name is required!");
+    return;
+  }
+
+  products.push(product);
+  renderTable();
+  clearForm();
+  queueProductForSync(product);
+
+  if (navigator.onLine) {
+    await syncPendingProducts();
+    await loadProductsFromSupabase();
+  }
+}
+
+// ── Clear Form ──
+function clearForm() {
+  document.querySelectorAll(".form-container input").forEach(i => i.value = "");
+  document.getElementById("weightUnit").value = "";
+}
+
+// ── Delete Product ──
+async function deleteProduct(index) {
   const product = products[index];
-
   if (!confirm("Are you sure?")) return;
 
   const { error } = await window.supabaseClient
@@ -378,220 +468,167 @@ if (navigator.onLine) {
     .delete()
     .eq("id", product.id);
 
-  if (error) {
-    console.error(error);
-    return;
-  }
+  if (error) { console.error(error); return; }
 
   await loadProductsFromSupabase();
 }
 
-    function editProduct(index) {
-      let prod = products[index];
-      document.getElementById("productName").value = prod.productName;
-      document.getElementById("buyingPrice").value = prod.buyingPrice;
-      document.getElementById("wholesalePrice").value = prod.wholesalePrice;
-      document.getElementById("retailPrice").value = prod.retailPrice;
-      document.getElementById("weight").value = prod.weight;
-      document.getElementById("company").value = prod.company;
-      document.getElementById("category").value = prod.category;
-      document.getElementById("details").value = prod.details;
-      document.getElementById("quantity").value = prod.quantity;
-      document.getElementById("expiryDate").value = prod.expiryDate;
-      products.splice(index, 1);
-      renderTable();
-    }
+// ── Edit Product ──
+function editProduct(index) {
+  const prod = products[index];
+  document.getElementById("productName").value    = prod.productName;
+  document.getElementById("buyingPrice").value    = prod.buyingPrice;
+  document.getElementById("wholesalePrice").value = prod.wholesalePrice;
+  document.getElementById("retailPrice").value    = prod.retailPrice;
+  document.getElementById("weight").value         = prod.weight;
+  document.getElementById("weightUnit").value     = prod.weightUnit || "";
+  document.getElementById("company").value        = prod.company;
+  document.getElementById("category").value       = prod.category;
+  document.getElementById("details").value        = prod.details;
+  document.getElementById("quantity").value       = prod.quantity;
+  document.getElementById("expiryDate").value     = prod.expiryDate;
 
-    function filterProducts() {
-      const query = document.getElementById("searchInput").value.toLowerCase();
-      const filtered = products.filter(prod =>
-        prod.productName.toLowerCase().includes(query)
-      );
-      renderTable(filtered);
-    }
+  // Open form so user can see what they're editing
+  document.getElementById("formContainer").classList.remove("hidden");
 
-    function sortProducts() {
-      const sortType = document.getElementById("sortOption").value;
+  products.splice(index, 1);
+  renderTable();
+}
 
-      if (sortType === "alphabetical") {
-        products.sort((a, b) => a.productName.localeCompare(b.productName));
-      } else if (sortType === "quantity") {
-        products.sort((a, b) => a.quantity - b.quantity);
-      } else if (sortType === "expiry") {
-        products.sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate));
+// ── Filter ──
+function filterProducts() {
+  const query = document.getElementById("searchInput").value.toLowerCase();
+  const filtered = products.filter(p => p.productName.toLowerCase().includes(query));
+  renderTable(filtered);
+}
+
+// ── Sort ──
+function sortProducts() {
+  const sortType = document.getElementById("sortOption").value;
+  if (sortType === "alphabetical") {
+    products.sort((a, b) => a.productName.localeCompare(b.productName));
+  } else if (sortType === "quantity") {
+    products.sort((a, b) => a.quantity - b.quantity);
+  } else if (sortType === "expiry") {
+    products.sort((a, b) => new Date(a.expiryDate) - new Date(b.expiryDate));
+  }
+  renderTable();
+}
+
+// ── Backup ──
+function backupProducts() {
+  if (!products.length) return alert("No products to back up.");
+  const blob = new Blob([JSON.stringify(products)], { type: "application/json" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = `products_backup_${new Date().toISOString().split("T")[0]}.json`;
+  a.click();
+}
+
+// ── Restore ──
+function restoreProducts(event) {
+  const file = event.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const restored = JSON.parse(e.target.result);
+      if (Array.isArray(restored)) {
+        products = restored;
+        localStorage.setItem("products", JSON.stringify(products));
+        renderTable();
+        alert("✅ Products restored successfully!");
+      } else {
+        alert("❌ Invalid file format.");
       }
-
-      renderTable();
+    } catch {
+      alert("❌ Error reading file.");
     }
-
-    function backupProducts() {
-      if (!products.length) return alert("No products to back up.");
-      const blob = new Blob([JSON.stringify(products)], { type: "application/json" });
-      const a = document.createElement("a");
-      a.href = URL.createObjectURL(blob);
-      a.download = `products_backup_${new Date().toISOString().split("T")[0]}.json`;
-      a.click();
-    }
-
-    function restoreProducts(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = e => {
-        try {
-          const restored = JSON.parse(e.target.result);
-          if (Array.isArray(restored)) {
-            products = restored;
-            localStorage.setItem("products", JSON.stringify(products));
-            renderTable();
-            alert("✅ Products restored successfully!");
-          } else {
-            alert("❌ Invalid file format.");
-          }
-        } catch {
-          alert("❌ Error reading file.");
-        }
-      };
-      reader.readAsText(file);
-    }
-
-    renderTable();
-
-    // Ensure dashboard button always opens the admin dashboard
-    function openAdminDashboard(e) {
-  e.preventDefault();
-  window.location.href = "admin_dashboard.html";
+  };
+  reader.readAsText(file);
 }
+
+// ── Toggle Form ──
 function toggleForm() {
-  const form = document.getElementById("formContainer");
-  form.classList.toggle("hidden");
+  document.getElementById("formContainer").classList.toggle("hidden");
 }
-    
-const supabaseUrl = "https://quhorqxtzhpuxeujgxfw.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1aG9ycXh0emhwdXhldWpneGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNTI2NzgsImV4cCI6MjA5NTYyODY3OH0._bldtcFHB59obsAsxC7ctKn-EqoQqKnwLTXowo2ppF8";
 
-window.supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+// ── Toggle Sidebar ──
+function toggleSidebar() {
+  document.getElementById("sidebar").classList.toggle("active");
+}
+
+// ── Supabase Sync ──
 function queueProductForSync(product) {
   const pending = JSON.parse(localStorage.getItem("pendingProducts")) || [];
   pending.push(product);
   localStorage.setItem("pendingProducts", JSON.stringify(pending));
 }
+
 async function syncPendingProducts() {
   const pending = JSON.parse(localStorage.getItem("pendingProducts")) || [];
-
-  if (pending.length === 0) return;
+  if (!pending.length) return;
 
   for (const product of pending) {
-    const { error } = await window.supabaseClient
-  .from("products")
-  .insert(product);
-
-    if (error) {
-      console.error("Sync error:", error);
-      return;
-    }
+    const { error } = await window.supabaseClient.from("products").insert(product);
+    if (error) { console.error("Sync error:", error); return; }
   }
 
   localStorage.removeItem("pendingProducts");
   console.log("✅ Products synced to Supabase");
 }
-window.addEventListener("online", syncPendingProducts);
 
-document.addEventListener("DOMContentLoaded", async () => {
-
-  if (navigator.onLine) {
-    await syncPendingProducts();
-    await loadProductsFromSupabase();
-  } else {
-    loadProductsFromLocalStorage();
-  }
-
-});
 function loadProductsFromLocalStorage() {
-  const savedProducts = localStorage.getItem("products");
-
-  if (savedProducts) {
-    products = JSON.parse(savedProducts);
-    renderTable();
-    console.log("✅ Loaded products from localStorage");
-  } else {
-    products = [];
-    renderTable();
-  }
+  const saved = localStorage.getItem("products");
+  products = saved ? JSON.parse(saved) : [];
+  renderTable();
 }
-async function loadProductsFromSupabase() {
-  const { data, error } = await window.supabaseClient
-    .from("products")
-    .select("*");
 
+async function loadProductsFromSupabase() {
+  const { data, error } = await window.supabaseClient.from("products").select("*");
   if (error) {
     console.error("Error loading products:", error);
-
-    // Fallback to localStorage
     loadProductsFromLocalStorage();
     return;
   }
-
   products = data || [];
-
-  // Keep local backup updated
   localStorage.setItem("products", JSON.stringify(products));
-
   renderTable();
 }
-window.supabaseClient
-  .channel("products-changes")
-  .on(
-    "postgres_changes",
-    {
-      event: "*",
-      schema: "public",
-      table: "products"
-    },
-    () => {
-      loadProductsFromSupabase();
-    }
-  )
-  .subscribe();
-  function startRealtime() {
-  if (window.realtimeChannel) return; // prevent duplicates
-  if (!navigator.onLine) return;
 
+function startRealtime() {
+  if (window.realtimeChannel) return;
+  if (!navigator.onLine) return;
   window.realtimeChannel = window.supabaseClient
     .channel("products-changes")
-    .on(
-      "postgres_changes",
-      { event: "*", schema: "public", table: "products" },
+    .on("postgres_changes", { event: "*", schema: "public", table: "products" },
       () => loadProductsFromSupabase()
     )
     .subscribe();
 }
-document.addEventListener("DOMContentLoaded", () => {
-  startRealtime();
+
+// ── Highlight active nav link ──
+document.querySelectorAll(".sidebar a").forEach(link => {
+  if (link.href === window.location.href) link.classList.add("active-link");
 });
+
+// ── Init ──
+document.addEventListener("DOMContentLoaded", async () => {
+  if (navigator.onLine) {
+    await syncPendingProducts();
+    await loadProductsFromSupabase();
+    startRealtime();
+  } else {
+    loadProductsFromLocalStorage();
+  }
+});
+
 window.addEventListener("online", async () => {
   await syncPendingProducts();
   await loadProductsFromSupabase();
   startRealtime();
 });
-function loadProductsFromLocalStorage() {
-  console.log("Loading from localStorage...");
 
-  const savedProducts = localStorage.getItem("products");
-
-  if (savedProducts) {
-    products = JSON.parse(savedProducts);
-
-    console.log("Loaded products:", products.length);
-
-    renderTable();
-  } else {
-    console.log("No products found");
-  }
-}
-function toggleSidebar() {
-  document.getElementById("sidebar").classList.toggle("active");
-}
-  </script>
+</script>
 </body>
 </html>
