@@ -447,7 +447,7 @@ function renderSales(data = allSales){
   ${
     sale.debtor?.trim()
     || sale.customer?.trim()
-    || "Walk-in Customer"
+    || "N/A"
   }
 </td>
 
@@ -736,131 +736,164 @@ document.getElementById("statusFilter")
 document.getElementById("dateFilter")
 .addEventListener("change", filterSales);
 
-function markAsPaid(index){
+async function markAsPaid(index){
 
-  const sale = allSales[index];
+  // Re-derive the filtered list the same way renderSales does,
+  // so the button index always maps to the right row
+  const search =
+    document.getElementById("searchInput").value.toLowerCase();
+  const payment =
+    document.getElementById("paymentFilter").value;
+  const status =
+    document.getElementById("statusFilter").value;
+  const date =
+    document.getElementById("dateFilter").value;
 
-  const remainingBalance =
-    parseFloat(sale.balance) || 0;
+  const filtered = allSales.filter(sale => {
+    const matchesSearch =
+      sale.product?.toLowerCase().includes(search) ||
+      sale.customer?.toLowerCase().includes(search);
+    const matchesPayment = !payment || sale.payment === payment;
+    const matchesStatus  = !status  || sale.status  === status;
+    const matchesDate    = !date    ||
+      new Date(sale.date).toISOString().split("T")[0] === date;
+    return matchesSearch && matchesPayment && matchesStatus && matchesDate;
+  });
+
+  const sale = filtered[index];
+  if(!sale) return;
+
+  // Find the real record in allSales
+  const originalIndex = allSales.findIndex(s =>
+    s.product === sale.product &&
+    s.date    === sale.date &&
+    s.debtor  === sale.debtor
+  );
+  if(originalIndex === -1) return;
+
+  const currentSale = allSales[originalIndex];
+
+  const remainingBalance = parseFloat(currentSale.balance) || 0;
 
   if(remainingBalance <= 0){
-
     alert("No outstanding balance.");
-
     return;
   }
 
-  // Ask amount customer is paying
   const paymentInput = prompt(
     `Outstanding balance is Ksh ${remainingBalance}\n\nEnter amount paid:`
   );
 
   if(paymentInput === null) return;
 
-  const paymentAmount =
-    parseFloat(paymentInput);
+  const paymentAmount = parseFloat(paymentInput);
 
-  // Validation
-  if(
-    isNaN(paymentAmount) ||
-    paymentAmount <= 0
-  ){
-
+  if(isNaN(paymentAmount) || paymentAmount <= 0){
     alert("Enter a valid payment amount.");
-
     return;
   }
 
   if(paymentAmount > remainingBalance){
-
     alert("Payment cannot exceed balance.");
-
     return;
   }
 
-  // Dates
-  const today =
-    new Date().toISOString().split("T")[0];
+  const today    = new Date().toISOString().split("T")[0];
+  const saleDate = new Date(currentSale.date).toISOString().split("T")[0];
 
-  const saleDate =
-    new Date(sale.date).toISOString().split("T")[0];
+  // Update the record
+  currentSale.amountPaid =
+    (parseFloat(currentSale.amountPaid) || 0) + paymentAmount;
 
-  // Update original sale
-  sale.amountPaid =
-    (parseFloat(sale.amountPaid) || 0)
-    + paymentAmount;
-
-  sale.balance =
+  currentSale.balance =
     remainingBalance - paymentAmount;
 
-  // Save cleared amount
-  sale.clearedAmount =
-    (parseFloat(sale.clearedAmount) || 0)
-    + paymentAmount;
+  currentSale.clearedAmount =
+    (parseFloat(currentSale.clearedAmount) || 0) + paymentAmount;
 
-  sale.clearedDate =
-    new Date().toISOString();
+  currentSale.clearedDate = new Date().toISOString();
 
-  // Update status
-  if(sale.balance <= 0){
-
-    sale.balance = 0;
-
-    sale.status = "PAID";
-
+  if(currentSale.balance <= 0){
+    currentSale.balance = 0;
+    currentSale.status  = "PAID";
   } else {
-
-    sale.status = "PARTIAL";
+    currentSale.status = "PARTIAL";
   }
 
-  // ✅ Create separate payment record
-  // ONLY if payment happens on another day
+  // Add a separate clearance record if payment is on a different day
   if(today !== saleDate){
 
     const debtPayment = {
-  receiptNo: crypto.randomUUID(), // ✅ ALWAYS UNIQUE
-  originalReceiptNo: sale.receiptNo, // optional tracking
+      receiptNo:  crypto.randomUUID(),
+      originalReceiptNo: currentSale.receiptNo,
+      product:    currentSale.product,
+      customer:   currentSale.customer || currentSale.debtor || "N/A",
+      debtor:     currentSale.debtor   || currentSale.customer || "N/A",
+      qty:        0,
+      total:      paymentAmount,
+      amountPaid: paymentAmount,
+      balance:    0,
+      payment:    "Debt Clearance",
+      status:     "PAID",
+      date:       new Date().toISOString(),
+      clearedDate: new Date().toISOString()
+    };
 
-  product: sale.product,
-  customer: sale.customer || sale.debtor || "Walk-in Customer",
-  debtor: sale.debtor || sale.customer || "Walk-in Customer",
+    allSales.unshift(debtPayment);
 
-  qty: 0,
-  total: paymentAmount,
-  amountPaid: paymentAmount,
-  balance: 0,
-
-  payment: "Debt Clearance",
-  status: "PAID",
-
-  date: new Date().toISOString(),
-  clearedDate: new Date().toISOString()
-};
-
-queueDebtsSync(debtPayment);
+    // Sync the new clearance record to Supabase
+    if(navigator.onLine){
+      await supabaseClient
+        .from("sales")
+        .insert([debtPayment]);
+    }
   }
-  // Save
-  localStorage.setItem(
-    "allSales",
-    JSON.stringify(allSales)
-  );
-  queueSaleForSync(sale);
 
-  renderSales();
+  // Save locally
+  localStorage.setItem("allSales", JSON.stringify(allSales));
 
-  updateSummary();
+  // Sync the updated original sale to Supabase
+  if(navigator.onLine){
 
-  if(sale.balance > 0){
+    const { error } =
+      await supabaseClient
+        .from("sales")
+        .upsert(
+          [currentSale],
+          { onConflict: "receiptNo" }
+        );
 
-    alert(
-      `✅ Partial payment recorded.\nRemaining balance: Ksh ${sale.balance}`
-    );
+    if(error){
+      console.error("Supabase update failed:", error);
+      // Queue for retry when back online
+      const pending =
+        JSON.parse(localStorage.getItem("pendingSales")) || [];
+      pending.push(currentSale);
+      localStorage.setItem("pendingSales", JSON.stringify(pending));
+    } else {
+      console.log("✅ Debt payment synced to Supabase");
+    }
 
   } else {
 
+    // Offline — queue for later
+    const pending =
+      JSON.parse(localStorage.getItem("pendingSales")) || [];
+    pending.push(currentSale);
+    localStorage.setItem("pendingSales", JSON.stringify(pending));
+
+  }
+
+  renderSales();
+  updateSummary();
+
+  if(currentSale.balance > 0){
+    alert(`✅ Partial payment recorded.\nRemaining balance: Ksh ${currentSale.balance}`);
+  } else {
     alert("✅ Debt fully cleared!");
   }
-  }
+
+}
 
 function downloadPDF(){
 
