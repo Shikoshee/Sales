@@ -1,1338 +1,710 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sell Products</title>
 
-<title>Sell Products</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
 
-<style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      color: #333;
+    }
 
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-}
+    h1 { text-align:center; margin-bottom:20px; padding-top:10px; }
 
-body{
-  font-family:Arial,sans-serif;
-  background:#f4f6f9;
-  padding:15px;
-  color:#333;
-}
+    .section {
+      background: #fff;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+    }
 
-h1{
-  text-align:center;
-  margin-bottom:20px;
-}
+    .section h3 { margin-bottom:10px; color:#007BFF; }
 
-.section{
-  background:#fff;
-  padding:15px;
-  border-radius:10px;
-  margin-bottom:15px;
-  box-shadow:0 2px 5px rgba(0,0,0,0.08);
-}
+    .product-card {
+      border: 1px solid #ddd;
+      border-radius: 8px;
+      padding: 15px;
+      margin-bottom: 15px;
+      background: #fafafa;
+    }
 
-.section h3{
-  margin-bottom:10px;
-  color:#007BFF;
-}
+    .low-stock { color:red; font-weight:bold; }
 
-.product-card{
-  border:1px solid #ddd;
-  border-radius:8px;
-  padding:15px;
-  margin-bottom:15px;
-  background:#fafafa;
-}
+    input, select {
+      width: 100%;
+      padding: 10px;
+      margin-top: 8px;
+      margin-bottom: 12px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 15px;
+    }
 
-.low-stock{
-  color:red;
-  font-weight:bold;
-}
+    .btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: 0.3s;
+    }
 
-input,
-select{
-  width:100%;
-  padding:10px;
-  margin-top:8px;
-  margin-bottom:12px;
-  border:1px solid #ccc;
-  border-radius:6px;
-  font-size:15px;
-}
+    .btn-sell  { background:#28a745; color:white; }
+    .btn-print { background:#ff9800; color:white; }
+    .btn-back  { background:#007BFF; color:white; }
+    .btn:hover { opacity:0.9; }
 
-.btn{
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:6px;
-  font-size:16px;
-  cursor:pointer;
-  margin-top:10px;
-  transition:0.3s;
-}
+    .summary { font-size:18px; margin-top:10px; }
+    .hidden  { display:none; }
 
-.btn-sell{
-  background:#28a745;
-  color:white;
-}
+    #searchResults {
+      margin-top: 10px;
+      max-height: 250px;
+      overflow-y: auto;
+    }
 
-.btn-print{
-  background:#ff9800;
-  color:white;
-}
+    .search-item {
+      padding: 10px;
+      background: #f1f1f1;
+      border-radius: 6px;
+      margin-bottom: 5px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
 
-.btn-back{
-  background:#007BFF;
-  color:white;
-}
+    .search-item:hover { background:#dbeafe; }
 
-.btn:hover{
-  opacity:0.9;
-}
+    @media(max-width:768px){ body{ padding:10px; } }
 
-.summary{
-  font-size:18px;
-  margin-top:10px;
-}
+    /* ── Sidebar ── */
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      height: 100vh;
+      width: 64px;
+      background: #0f172a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 0;
+      gap: 4px;
+      z-index: 1000;
+      transition: width 0.25s ease;
+      overflow: hidden;
+    }
 
-.hidden{
-  display:none;
-}
+    .sidebar.active {
+      width: 220px;
+      align-items: flex-start;
+      padding: 16px 12px;
+    }
 
-.search-box{
-  margin-bottom:15px;
-}
-.weight-group{
-  display:flex;
-  gap:10px;
-  margin-bottom:10px;
-}
+    .sidebar-logo {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      background: #1e293b;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 8px;
+      flex-shrink: 0;
+    }
 
-.weight-group input,
-.weight-group select{
-  flex:1;
-  padding:10px;
-}
+    .sidebar.active .sidebar-logo {
+      width: 100%; height: auto;
+      background: transparent; border-radius: 0;
+      flex-direction: row; gap: 10px;
+      padding: 8px 4px; margin-bottom: 4px;
+    }
 
-@media(max-width:768px){
-  body{
-    padding:10px;
-  }
-}
-#searchResults{
-  margin-top:10px;
-  max-height:250px;
-  overflow-y:auto;
-}
+    .sidebar-logo i { font-size:20px; color:#60a5fa; }
 
-.search-item{
-  padding:10px;
-  background:#f1f1f1;
-  border-radius:6px;
-  margin-bottom:5px;
-  cursor:pointer;
-  transition:0.2s;
-}
+    .sidebar-logo-text {
+      display: none;
+      font-size: 15px; font-weight: 500;
+      color: #f1f5f9; white-space: nowrap;
+    }
 
-.search-item:hover{
-  background:#dbeafe;
-}
+    .sidebar.active .sidebar-logo-text { display:block; }
 
+    .sidebar-divider {
+      width: 36px; height: 0.5px;
+      background: #1e293b;
+      margin: 4px 0 8px;
+      flex-shrink: 0;
+    }
 
-.dashboard-btn {
-  position: absolute;
-  top: 20px;
-  left: 20px;
-  background: #007BFF;
-  color: #fff;
-  padding: 10px 18px;
-  border-radius: 5px;
-  font-weight: bold;
-  text-decoration: none;
-  transition: background 0.3s;
-}
-.dashboard-btn:hover {
-  background: #0056b3;
-}
+    .sidebar.active .sidebar-divider {
+      width: calc(100% - 8px);
+      margin: 4px 4px 8px;
+    }
 
-</style>
+    .sidebar a {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      text-decoration: none;
+      color: #94a3b8;
+      flex-shrink: 0;
+      transition: background 0.15s ease, color 0.15s ease;
+      gap: 10px;
+    }
+
+    .sidebar.active a {
+      width: 100%; height: auto;
+      padding: 10px 12px;
+      justify-content: flex-start;
+    }
+
+    .sidebar a i { font-size:18px; flex-shrink:0; }
+    .sidebar.active a i { font-size:17px; }
+
+    .sidebar a .nav-label { display:none; font-size:14px; white-space:nowrap; }
+    .sidebar.active a .nav-label { display:block; }
+
+    .sidebar a:hover { background:#1e293b; color:#e2e8f0; }
+    .sidebar a.active-link { background:#1e3a5f; color:#60a5fa; }
+
+    .sidebar a.logout-link { color:#f87171; margin-top:auto; }
+    .sidebar a.logout-link:hover { background:#2d1a1a; }
+
+    .sidebar-spacer { flex:1; }
+
+    .toggle-btn {
+      position: fixed;
+      top: 14px; left: 14px;
+      background: transparent;
+      color: #60a5fa;
+      border: none; padding: 8px;
+      cursor: pointer;
+      border-radius: 6px;
+      font-size: 20px;
+      z-index: 1002;
+      transition: background 0.15s;
+    }
+
+    .toggle-btn:hover { background:#1e293b; }
+
+    /* ── Main content ── */
+    .main-content {
+      margin-left: 64px;
+      padding: 15px;
+      transition: margin-left 0.25s ease;
+    }
+
+    .sidebar.active ~ .main-content { margin-left: 220px; }
+  </style>
 </head>
 <body>
-  <a href="#" class="dashboard-btn" onclick="openAdminDashboard(event)">🏠 Dashboard</a>
 
-<h1>🛒 Sell Products</h1>
+<!-- Toggle Button -->
+<button class="toggle-btn" onclick="toggleSidebar()" aria-label="Toggle menu">
+  <i class="ti ti-menu-2"></i>
+</button>
 
-<!-- SEARCH -->
-<div class="section">
-  <h3>Search Product</h3>
-  <input type="text" id="searchProduct" placeholder="Search product...">
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <i class="ti ti-package" aria-hidden="true"></i>
+    <span class="sidebar-logo-text">Inventra</span>
+  </div>
+  <div class="sidebar-divider"></div>
+  <div id="sidebarLinks"></div>
+  <div class="sidebar-spacer"></div>
+  <div class="sidebar-divider"></div>
+  <a href="Home Stock.html" class="logout-link">
+    <i class="ti ti-logout" aria-hidden="true"></i>
+    <span class="nav-label">Logout</span>
+  </a>
 </div>
 
-<!-- PRODUCTS -->
-<div class="section">
-  <h3>Products</h3>
+<!-- Main Content -->
+<div class="main-content">
+
+  <h1>🛒 Sell Products</h1>
+
+  <!-- SEARCH -->
   <div class="section">
+    <h3>Search Product</h3>
+    <input type="text" id="searchProduct" placeholder="Search product...">
+    <div id="searchResults"></div>
+  </div>
 
-  <h3>Search & Add Products</h3>
+  <!-- PRODUCTS -->
+  <div class="section">
+    <h3>Products</h3>
+    <div id="sellContainer"></div>
+  </div>
 
- 
-  <div id="searchResults"></div>
+  <!-- CUSTOMER -->
+  <div class="section">
+    <h3>Customer Details</h3>
+    <label>Customer Name</label>
+    <input type="text" id="customerName" placeholder="N/A">
+    <label>Sale Type</label>
+    <select id="saleType">
+      <option value="Retail">Retail</option>
+      <option value="Wholesale">Wholesale</option>
+    </select>
+    <div id="wholesaleField" class="hidden">
+      <label>Wholesale Shop Name</label>
+      <input type="text" id="wholesaleShop" placeholder="Enter shop name">
+    </div>
+  </div>
 
-</div>
-  <div id="sellContainer"></div>
-</div>
+  <!-- PAYMENT -->
+  <div class="section">
+    <h3>Payment Details</h3>
+    <label>Payment Method</label>
+    <select id="payment">
+      <option value="Cash">Cash</option>
+      <option value="Mpesa">Mpesa</option>
+      <option value="Card">Card</option>
+      <option value="Debt">Debt</option>
+    </select>
 
-<!-- CUSTOMER -->
-<div class="section">
-  <h3>Customer Details</h3>
+    <div id="mpesaField" class="hidden">
+      <label>Customer Phone Number</label>
+      <input type="tel" id="mpesaPhone" placeholder="07XXXXXXXX">
+      <button type="button" class="btn" style="background:#28a745;color:white;margin-top:10px;" onclick="triggerMpesaPrompt()">
+        📲 Send M-Pesa Prompt
+      </button>
+    </div>
 
-  <label>Customer Name</label>
-  <input type="text" id="customerName" placeholder="N/A">
+    <div id="debtorField" class="hidden">
+      <label>Debtor Name</label>
+      <input type="text" id="debtorName" placeholder="Enter debtor name">
+    </div>
 
-  <label>Sale Type</label>
-  <select id="saleType">
-    <option value="Retail">Retail</option>
-    <option value="Wholesale">Wholesale</option>
-  </select>
+    <label>Amount Paid (Ksh)</label>
+    <input type="number" id="amountPaid" value="0">
+  </div>
 
-  <div id="wholesaleField" class="hidden">
-    <label>Wholesale Shop Name</label>
-    <input type="text" id="wholesaleShop" placeholder="Enter shop name">
+  <!-- SUMMARY -->
+  <div class="section">
+    <h3>Sale Summary</h3>
+    <p class="summary"><strong>Total:</strong> <span id="grandTotal">Ksh 0.00</span></p>
+    <p class="summary"><strong>Balance:</strong> <span id="balance">Ksh 0.00</span></p>
+  </div>
+
+  <!-- BUTTONS -->
+  <div class="section">
+    <button class="btn btn-sell"  onclick="handleSale(false)">✅ Confirm Sale</button>
+    <button class="btn btn-print" onclick="handleSale(true)">🧾 Confirm & Print</button>
+    <button class="btn btn-back"  onclick="goBack()">⬅ Back to Stock</button>
   </div>
 
 </div>
+<!-- End .main-content -->
 
-<!-- PAYMENT -->
-<div class="section">
-  <h3>Payment Details</h3>
-
-  <label>Payment Method</label>
-  <select id="payment">
-    <option value="Cash">Cash</option>
-    <option value="Mpesa">Mpesa</option>
-    <option value="Card">Card</option>
-    <option value="Debt">Debt</option>
-</select>
-
-<div id="mpesaField" class="hidden">
-
-  <label>Customer Phone Number</label>
-
-  <input
-    type="tel"
-    id="mpesaPhone"
-    placeholder="07XXXXXXXX"
-  >
-
-  <button
-    type="button"
-    class="btn"
-    style="background:#28a745;color:white;margin-top:10px;"
-    onclick="triggerMpesaPrompt()"
-  >
-    📲 Send M-Pesa Prompt
-  </button>
-
-</div>
-  <div id="debtorField" class="hidden">
-    <label>Debtor Name</label>
-    <input type="text" id="debtorName" placeholder="Enter debtor name">
-  </div>
-
-  <label>Amount Paid (Ksh)</label>
-  <input type="number" id="amountPaid" value="0">
-
-</div>
-
-<!-- SUMMARY -->
-<div class="section">
-
-  <h3>Sale Summary</h3>
-
-  <p class="summary">
-    <strong>Total:</strong>
-    <span id="grandTotal">Ksh 0.00</span>
-  </p>
-
-  <p class="summary">
-    <strong>Balance:</strong>
-    <span id="balance">Ksh 0.00</span>
-  </p>
-
-</div>
-
-<!-- BUTTONS -->
-<div class="section">
-
-  <button class="btn btn-sell" onclick="handleSale(false)">
-    ✅ Confirm Sale
-  </button>
-
-  <button class="btn btn-print" onclick="handleSale(true)">
-    🧾 Confirm & Print
-  </button>
-
-  <button class="btn btn-back" onclick="goBack()">
-    ⬅ Back to Stock
-  </button>
-
-</div>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <script>
 
-let products = JSON.parse(localStorage.getItem("products")) || [];
+// ── Supabase ──
+const supabaseUrl = "https://quhorqxtzhpuxeujgxfw.supabase.co";
+const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1aG9ycXh0emhwdXhldWpneGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNTI2NzgsImV4cCI6MjA5NTYyODY3OH0._bldtcFHB59obsAsxC7ctKn-EqoQqKnwLTXowo2ppF8";
+const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-let saleCompleted = false;
+// ── Sidebar ──
+const ADMIN_LINKS = [
+  { href:"admin_dashboard.html", icon:"ti-home",          label:"Dashboard"     },
+  { href:"Stock.html",           icon:"ti-box",           label:"Stock"         },
+  { href:"Sell.html",            icon:"ti-shopping-cart", label:"Sell"          },
+  { href:"debts.html",           icon:"ti-coin",          label:"Debts"         },
+  { href:"sales_report.html",    icon:"ti-chart-bar",     label:"Reports"       },
+  { href:"manage_user.html",     icon:"ti-users",         label:"Users"         },
+];
 
-const container = document.getElementById("sellContainer");
+const USER_LINKS = [
+  { href:"user_dashboard.html",  icon:"ti-home",          label:"Dashboard"     },
+  { href:"user_stock.html",      icon:"ti-box",           label:"View Stock"    },
+  { href:"Sell.html",            icon:"ti-shopping-cart", label:"Sell Products" },
+  { href:"sales_report.html",    icon:"ti-chart-bar",     label:"Sales Reports" },
+  { href:"debts.html",           icon:"ti-coin",          label:"Debts"         },
+];
+
+function buildSidebar() {
+  const user  = JSON.parse(localStorage.getItem("loggedInUser"));
+  const links = user?.role === "Admin" ? ADMIN_LINKS : USER_LINKS;
+  const currentPage = window.location.pathname.split("/").pop();
+
+  document.getElementById("sidebarLinks").innerHTML = links.map(l => `
+    <a href="${l.href}" ${l.href === currentPage ? 'class="active-link"' : ''}>
+      <i class="ti ${l.icon}" aria-hidden="true"></i>
+      <span class="nav-label">${l.label}</span>
+    </a>
+  `).join("");
+}
+
+function toggleSidebar() {
+  document.getElementById("sidebar").classList.toggle("active");
+}
+
+// ── State ──
+let products       = JSON.parse(localStorage.getItem("products")) || [];
+let selectedProducts = JSON.parse(localStorage.getItem("sellIndices")) || [];
+let saleCompleted  = false;
+
+const container   = document.getElementById("sellContainer");
 const searchInput = document.getElementById("searchProduct");
-
 const searchResults = document.getElementById("searchResults");
 
+// ── Search ──
 searchInput.addEventListener("input", function(){
-
   const value = this.value.toLowerCase();
-
   searchResults.innerHTML = "";
-
-  if(!value) return;
-
-  const filtered = products.filter(product =>
-    product.productName.toLowerCase().includes(value)
-  );
-
-  filtered.forEach(product => {
-
-    const index = products.indexOf(product);
-
-    const item = document.createElement("div");
-
-    item.className = "search-item";
-
-    item.innerHTML = `
-      ${product.productName}
-      (${product.quantity} in stock)
-    `;
-
-    item.onclick = () => addToCart(index);
-
-    searchResults.appendChild(item);
-
-  });
-
+  if (!value) return;
+  products
+    .filter(p => p.productName.toLowerCase().includes(value))
+    .forEach(p => {
+      const index = products.indexOf(p);
+      const item  = document.createElement("div");
+      item.className = "search-item";
+      item.innerHTML = `${p.productName} (${p.quantity} in stock)`;
+      item.onclick   = () => addToCart(index);
+      searchResults.appendChild(item);
+    });
 });
 
-function addToCart(index){
-
-  if(selectedProducts.includes(index)){
-    alert("Product already added!");
-    return;
-  }
-
+function addToCart(index) {
+  if (selectedProducts.includes(index)) { alert("Product already added!"); return; }
   selectedProducts.push(index);
-
   renderProducts();
-
   searchInput.value = "";
-
   searchResults.innerHTML = "";
-
 }
 
-function removeProduct(index){
-
-  selectedProducts =
-    selectedProducts.filter(i => i !== index);
-
-  renderProducts();
-  // Auto-load selected products from Stock page
-if(selectedProducts.length > 0){
+function removeProduct(index) {
+  selectedProducts = selectedProducts.filter(i => i !== index);
   renderProducts();
 }
 
+function formatMoney(amount) {
+  return new Intl.NumberFormat('en-KE', { style:'currency', currency:'KES' }).format(amount);
 }
 
-function formatMoney(amount){
-  return new Intl.NumberFormat('en-KE', {
-    style:'currency',
-    currency:'KES'
-  }).format(amount);
-}
-
-let selectedProducts =
-  JSON.parse(localStorage.getItem("sellIndices")) || [];
-function renderProducts(){
-
+// ── Render products ──
+function renderProducts() {
   container.innerHTML = "";
-
   selectedProducts.forEach(index => {
-
-    const p = products[index];
-
+    const p    = products[index];
     const card = document.createElement("div");
-
     card.className = "product-card";
-
     card.innerHTML = `
-
       <h3>${p.productName}</h3>
-
-      ${p.quantity <= 5
-        ? `<p class="low-stock">⚠ Low Stock</p>`
-        : ""
-      }
-
+      ${p.quantity <= 5 ? `<p class="low-stock">⚠ Low Stock</p>` : ""}
       <p><strong>Available:</strong> ${p.quantity}</p>
-
       <p><strong>Retail:</strong> ${formatMoney(p.retailPrice)}</p>
-
-      <p><strong>Wholesale:</strong>
-      ${formatMoney(p.wholesalePrice || 0)}</p>
-
+      <p><strong>Wholesale:</strong> ${formatMoney(p.wholesalePrice || 0)}</p>
       <label>Quantity</label>
-
-      <input
-        type="number"
-        class="qtyInput"
-        min="0"
-        max="${p.quantity}"
-        value="1"
-        data-index="${index}"
-      >
-
+      <input type="number" class="qtyInput" min="0" max="${p.quantity}" value="1" data-index="${index}">
       <label>Discount</label>
-
-      <input
-        type="number"
-        class="discountInput"
-        min="0"
-        value="0"
-      >
-
-      <p>
-        <strong>Line Total:</strong>
-        <span class="lineTotal">Ksh 0.00</span>
-      </p>
-
-      <button
-        class="btn"
-        style="background:red;color:white;"
-        onclick="removeProduct(${index})"
-      >
-        Remove
-      </button>
-
+      <input type="number" class="discountInput" min="0" value="0">
+      <p><strong>Line Total:</strong> <span class="lineTotal">Ksh 0.00</span></p>
+      <button class="btn" style="background:red;color:white;" onclick="removeProduct(${index})">Remove</button>
     `;
-
     container.appendChild(card);
-
   });
-
   updateTotals();
-
 }
 
-renderProducts();
-function updateTotals(){
-
+// ── Totals ──
+function updateTotals() {
   let grandTotal = 0;
+  const saleType = document.getElementById("saleType").value;
 
-  const saleType =
-    document.getElementById("saleType").value;
-
-  document.querySelectorAll(".product-card")
-  .forEach(card => {
-
-    const qtyInput =
-      card.querySelector(".qtyInput");
-
-    const discountInput =
-      card.querySelector(".discountInput");
-
-    const lineTotalText =
-      card.querySelector(".lineTotal");
-
-    const index =
-      parseInt(qtyInput.dataset.index);
-
+  document.querySelectorAll(".product-card").forEach(card => {
+    const qtyInput      = card.querySelector(".qtyInput");
+    const discountInput = card.querySelector(".discountInput");
+    const lineTotalText = card.querySelector(".lineTotal");
+    const index   = parseInt(qtyInput.dataset.index);
     const product = products[index];
+    if (!product) return;
 
-    if(!product) return;
+    const qty   = parseInt(qtyInput.value) || 0;
+    const price = saleType === "Wholesale"
+      ? parseFloat(product.wholesalePrice || product.retailPrice || 0)
+      : parseFloat(product.retailPrice || 0);
 
-    const qty =
-      parseInt(qtyInput.value) || 0;
-
-    // ✅ Use wholesale price when wholesale selected
-    const price =
-      saleType === "Wholesale"
-      ? parseFloat(
-          product.wholesalePrice ||
-          product.retailPrice ||
-          0
-        )
-      : parseFloat(
-          product.retailPrice || 0
-        );
-
-    let discount =
-      parseFloat(discountInput.value) || 0;
-
-    let total = qty * price;
-
-    // ✅ Prevent discount bigger than total
-    if(discount > total){
-
-      discount = total;
-
-      discountInput.value = total;
-
-    }
-
+    let discount = parseFloat(discountInput.value) || 0;
+    let total    = qty * price;
+    if (discount > total) { discount = total; discountInput.value = total; }
     total -= discount;
-
-    // ✅ Prevent negative totals
-    if(total < 0){
-      total = 0;
-    }
-
-    lineTotalText.innerText =
-      formatMoney(total);
-
+    if (total < 0) total = 0;
+    lineTotalText.innerText = formatMoney(total);
     grandTotal += total;
-
   });
 
-  const amountPaid =
-    parseFloat(
-      document.getElementById("amountPaid").value
-    ) || 0;
+  const amountPaid = parseFloat(document.getElementById("amountPaid").value) || 0;
+  if (amountPaid > grandTotal) document.getElementById("amountPaid").value = grandTotal;
 
-  // ✅ Prevent overpayment
-  if(amountPaid > grandTotal){
+  const finalPaid = parseFloat(document.getElementById("amountPaid").value) || 0;
+  const balance   = grandTotal - finalPaid;
 
-    document.getElementById("amountPaid").value =
-      grandTotal;
+  document.getElementById("grandTotal").innerText = formatMoney(grandTotal);
+  document.getElementById("balance").innerText    = formatMoney(balance > 0 ? balance : 0);
 
-  }
-
-  const finalPaid =
-    parseFloat(
-      document.getElementById("amountPaid").value
-    ) || 0;
-
-  const balance = grandTotal - finalPaid;
-
-  document.getElementById("grandTotal").innerText =
-    formatMoney(grandTotal);
-
-  document.getElementById("balance").innerText =
-    formatMoney(balance > 0 ? balance : 0);
-
-  // ✅ Auto toggle debtor field
   toggleDebtorField();
-
-  // ✅ Auto toggle wholesale field
   toggleWholesaleField();
-
 }
 
-function toggleWholesaleField(){
-
-  const saleType =
-    document.getElementById("saleType").value;
-
-  const wholesaleField =
-    document.getElementById("wholesaleField");
-
-  wholesaleField.classList.toggle(
-    "hidden",
-    saleType !== "Wholesale"
+function toggleWholesaleField() {
+  document.getElementById("wholesaleField").classList.toggle(
+    "hidden", document.getElementById("saleType").value !== "Wholesale"
   );
-
 }
-
-function toggleDebtorField(){
-
-  const payment =
-    document.getElementById("payment").value;
-
-  const grandTotalText =
-    document.getElementById("grandTotal").innerText;
-
-  const totalSale =
-    parseFloat(
-      grandTotalText.replace(/[^0-9.-]+/g,"")
-    ) || 0;
-
-  const amountPaid =
-    parseFloat(
-      document.getElementById("amountPaid").value
-    ) || 0;
-
-  const balance =
-    totalSale - amountPaid;
-
-  // ✅ Show debtor field for:
-  // Debt payment OR partial payment
-  const showDebtorField =
-    payment === "Debt" || balance > 0;
-
-  document.getElementById("debtorField")
-    .classList.toggle(
-      "hidden",
-      !showDebtorField
-    );
-
-}
-
-document.addEventListener("input", e => {
-
-  if(
-    e.target.classList.contains("qtyInput") ||
-    e.target.classList.contains("discountInput")
-  ){
-
-    updateTotals();
-
-  }
-
-});
-
-// ✅ Amount paid listener
-document.getElementById("amountPaid")
-.addEventListener("input", () => {
-
-  updateTotals();
-
-});
-
-// ✅ Payment method listener
-document.getElementById("payment")
-.addEventListener("change", () => {
-
-  toggleDebtorField();
-
-});
-
-// ✅ Sale type listener
-document.getElementById("saleType")
-.addEventListener("change", () => {
-
-  toggleWholesaleField();
-
-  updateTotals();
-
-});
-
-// ✅ Run on page load
-toggleWholesaleField();
-
-toggleDebtorField();
-
-updateTotals();
-
-
-document.getElementById("amountPaid")
-.addEventListener("input", () => {
-
-  updateTotals();
-
-  toggleDebtorField();
-
-});
-
-document.getElementById("payment")
-.addEventListener("change", toggleDebtorField);
 
 function toggleDebtorField() {
-
-  const payment = document.getElementById("payment").value;
-
-  const grandTotalText =
-    document.getElementById("grandTotal").innerText;
-
-  const totalSale =
-    parseFloat(grandTotalText.replace(/[^0-9.-]+/g,"")) || 0;
-
-  const amountPaid =
-    parseFloat(document.getElementById("amountPaid").value) || 0;
-
-  const balance = totalSale - amountPaid;
-
-  const showDebtorField =
-    payment === "Debt" || balance > 0;
-
-  document.getElementById("debtorField")
-    .classList.toggle("hidden", !showDebtorField);
-
+  const payment    = document.getElementById("payment").value;
+  const totalSale  = parseFloat(document.getElementById("grandTotal").innerText.replace(/[^0-9.-]+/g,"")) || 0;
+  const amountPaid = parseFloat(document.getElementById("amountPaid").value) || 0;
+  const balance    = totalSale - amountPaid;
+  document.getElementById("debtorField").classList.toggle("hidden", !(payment === "Debt" || balance > 0));
 }
 
+function togglePaymentFields() {
+  const payment = document.getElementById("payment").value;
+  document.getElementById("debtorField").classList.toggle("hidden", payment !== "Debt");
+  document.getElementById("mpesaField").classList.toggle("hidden",  payment !== "Mpesa");
+}
 
-async function handleSale(printReceipt = false){
+// ── Listeners ──
+document.addEventListener("input", e => {
+  if (e.target.classList.contains("qtyInput") || e.target.classList.contains("discountInput")) updateTotals();
+});
+document.getElementById("amountPaid").addEventListener("input", () => { updateTotals(); toggleDebtorField(); });
+document.getElementById("payment").addEventListener("change",   () => { toggleDebtorField(); togglePaymentFields(); });
+document.getElementById("saleType").addEventListener("change",  () => { toggleWholesaleField(); updateTotals(); });
 
-  
-  const payment =
-    document.getElementById("payment").value;
+// ── Handle Sale ──
+async function handleSale(printReceipt = false) {
+  const payment = document.getElementById("payment").value;
 
-  if(payment === "Mpesa"){
-
-    const phone =
-      document
-      .getElementById("mpesaPhone")
-      .value
-      .trim();
-
-    // Only attempt STK push if a phone number was actually entered.
-    // Phone number is now optional — sale can proceed without it.
-    if(phone){
-
+  if (payment === "Mpesa") {
+    const phone = document.getElementById("mpesaPhone").value.trim();
+    if (phone) {
       const paid = await sendSTKPush(phone);
-
-      if(!paid){
-        // Don't block the sale — just let the cashier know.
-        const proceed = confirm(
-          "M-Pesa prompt failed or was not confirmed. Record the sale anyway?"
-        );
-        if(!proceed) return;
+      if (!paid) {
+        const proceed = confirm("M-Pesa prompt failed or was not confirmed. Record the sale anyway?");
+        if (!proceed) return;
       }
-
     }
-
   }
 
   const result = await makeSale();
-
-  if(!result) return;
+  if (!result) return;
 
   alert("Sale completed successfully.");
 
-  if(printReceipt){
-
+  if (printReceipt) {
     printReceiptPage(result);
-
-  }else{
-
-    window.location.href="sales_report.html";
-
+  } else {
+    window.location.href = "sales_report.html";
   }
-
 }
 
-async function makeSale(){
+// ── Make Sale ──
+async function makeSale() {
+  if (saleCompleted) { alert("Sale already completed!"); return null; }
 
-  if(saleCompleted){
-    alert("Sale already completed!");
-    return null;
-  }
+  const paymentMode  = document.getElementById("payment").value;
+  const saleType     = document.getElementById("saleType").value;
+  const amountPaid   = parseFloat(document.getElementById("amountPaid").value) || 0;
+  const customerName = document.getElementById("customerName").value.trim() || "N/A";
+  const debtorName   = document.getElementById("debtorName").value.trim();
+  const wholesaleShop = document.getElementById("wholesaleShop").value.trim();
+  const totalSale    = parseFloat(document.getElementById("grandTotal").innerText.replace(/[^0-9.-]+/g,""));
+  const balance      = totalSale - amountPaid;
 
-  const paymentMode =
-    document.getElementById("payment").value;
+  if (totalSale <= 0)                             { alert("No products selected!"); return null; }
+  if (balance > 0 && debtorName === "")           { alert("Enter debtor name."); return null; }
+  if (saleType === "Wholesale" && !wholesaleShop) { alert("Enter wholesale shop name."); return null; }
 
-  const saleType =
-    document.getElementById("saleType").value;
-
-  const amountPaid =
-    parseFloat(document.getElementById("amountPaid").value) || 0;
-
-  const customerName =
-    document.getElementById("customerName").value.trim()
-    || "N/A";
-
-  const debtorName =
-    document.getElementById("debtorName").value.trim();
-
-  const wholesaleShop =
-    document.getElementById("wholesaleShop").value.trim();
-
-  const grandTotalText =
-    document.getElementById("grandTotal").innerText;
-
-  const totalSale =
-    parseFloat(grandTotalText.replace(/[^0-9.-]+/g,""));
-
-  const balance = totalSale - amountPaid;
-
-  if(totalSale <= 0){
-    alert("No products selected!");
-    return null;
-  }
-
-  if(balance > 0 && debtorName === ""){
-    alert("Enter debtor name.");
-    return null;
-  }
-
-  if(saleType === "Wholesale" && wholesaleShop === ""){
-    alert("Enter wholesale shop name.");
-    return null;
-  }
-
-  let saleDetails = [];
-
+  let saleDetails      = [];
   let remainingPayment = amountPaid;
+  const receiptNo      = "RCPT-" + Date.now();
 
-const receiptNo = "RCPT-" + Date.now();
+  document.querySelectorAll(".product-card").forEach(card => {
+    const qtyInput      = card.querySelector(".qtyInput");
+    const discountInput = card.querySelector(".discountInput");
+    const qty     = parseInt(qtyInput.value) || 0;
+    if (qty <= 0) return;
 
-document.querySelectorAll(".product-card")
-.forEach(card => {
+    const index   = parseInt(qtyInput.dataset.index);
+    const product = products[index];
+    if (qty > product.quantity) { alert(`Insufficient stock for ${product.productName}`); return; }
 
-  const qtyInput = card.querySelector(".qtyInput");
-  const discountInput = card.querySelector(".discountInput");
+    const price    = saleType === "Wholesale"
+      ? parseFloat(product.wholesalePrice || product.retailPrice)
+      : parseFloat(product.retailPrice);
+    const discount = parseFloat(discountInput.value) || 0;
+    const total    = (qty * price) - discount;
 
-  const qty = parseInt(qtyInput.value) || 0;
+    product.quantity -= qty;
 
-  if(qty <= 0) return;
+    let paidForThisItem    = 0;
+    let balanceForThisItem = total;
 
-  const index = parseInt(qtyInput.dataset.index);
-
-  const product = products[index];
-
-  if(qty > product.quantity){
-
-    alert(`Insufficient stock for ${product.productName}`);
-
-    return;
-
-  }
-
-  const price =
-    saleType === "Wholesale"
-    ? parseFloat(product.wholesalePrice || product.retailPrice)
-    : parseFloat(product.retailPrice);
-
-  const discount =
-    parseFloat(discountInput.value) || 0;
-
-  const total = (qty * price) - discount;
-
-  // Reduce stock
-  product.quantity -= qty;
-
-  // -----------------------------
-  // DISTRIBUTE PAYMENT
-  // -----------------------------
-
-  let paidForThisItem = 0;
-  let balanceForThisItem = total;
-
-  if(remainingPayment > 0){
-
-    if(remainingPayment >= total){
-
-      // Fully paid
-      paidForThisItem = total;
-      balanceForThisItem = 0;
-
-      remainingPayment -= total;
-
-    } else {
-
-      // Partial payment
-      paidForThisItem = remainingPayment;
-      balanceForThisItem = total - remainingPayment;
-
-      remainingPayment = 0;
-
+    if (remainingPayment > 0) {
+      if (remainingPayment >= total) {
+        paidForThisItem    = total;
+        balanceForThisItem = 0;
+        remainingPayment  -= total;
+      } else {
+        paidForThisItem    = remainingPayment;
+        balanceForThisItem = total - remainingPayment;
+        remainingPayment   = 0;
+      }
     }
 
-  }
-
-  saleDetails.push({
-
-    receiptNo: receiptNo,
-
-    product: product.productName,
-
-    customer: customerName,
-
-    qty: qty,
-
-    price: price,
-
-    discount: discount,
-
-    total: total,
-
-    payment: paymentMode,
-
-    amountPaid: paidForThisItem,
-
-    balance: balanceForThisItem,
-
-    debtor: balanceForThisItem > 0
-      ? debtorName
-      : "",
-
-    saleType: saleType,
-
-    shopName: wholesaleShop,
-
-    status: balanceForThisItem <= 0
-      ? "PAID"
-      : "PARTIAL",
-
-    date: new Date().toISOString()
-
+    saleDetails.push({
+      receiptNo, product: product.productName, customer: customerName,
+      qty, price, discount, total, payment: paymentMode,
+      amountPaid: paidForThisItem, balance: balanceForThisItem,
+      debtor: balanceForThisItem > 0 ? debtorName : "",
+      saleType, shopName: wholesaleShop,
+      status: balanceForThisItem <= 0 ? "PAID" : "PARTIAL",
+      date: new Date().toISOString()
+    });
   });
 
-});
-
   localStorage.setItem("products", JSON.stringify(products));
+  let allSales = JSON.parse(localStorage.getItem("allSales")) || [];
+  allSales.push(...saleDetails);
+  localStorage.setItem("allSales", JSON.stringify(allSales));
 
-let allSales =
-  JSON.parse(localStorage.getItem("allSales")) || [];
-
-allSales.push(...saleDetails);
-localStorage.setItem("allSales", JSON.stringify(allSales));
-
-// Wait for Supabase insert to actually finish before returning
-const { error } =
-  await supabaseClient
-    .from("sales")
-    .insert(saleDetails);
-
-if(error){
-  console.error("Supabase insert failed:", error);
-
-  const pending =
-    JSON.parse(localStorage.getItem("pendingSales")) || [];
-  pending.push(...saleDetails);
-  localStorage.setItem("pendingSales", JSON.stringify(pending));
-}
+  const { error } = await supabaseClient.from("sales").insert(saleDetails);
+  if (error) {
+    console.error("Supabase insert failed:", error);
+    const pending = JSON.parse(localStorage.getItem("pendingSales")) || [];
+    pending.push(...saleDetails);
+    localStorage.setItem("pendingSales", JSON.stringify(pending));
+  }
 
   localStorage.removeItem("sellIndices");
-
   saleCompleted = true;
-
-  return {
-    saleDetails,
-    totalSale,
-    amountPaid,
-    balance,
-    customerName,
-    debtorName,
-    saleType,
-    wholesaleShop
-  };
-
+  return { saleDetails, totalSale, amountPaid, balance, customerName, debtorName, saleType, wholesaleShop };
 }
 
-
-
-
-function printReceiptPage(data){
-
-  const {
-
-    saleDetails,
-    totalSale,
-    amountPaid,
-    balance,
-    customerName,
-    debtorName,
-    saleType,
-    wholesaleShop
-
-  } = data;
+// ── Print Receipt ──
+function printReceiptPage(data) {
+  const { saleDetails, totalSale, amountPaid, balance, customerName, debtorName, saleType, wholesaleShop } = data;
 
   const receiptHTML = `
-
-    <h2 style="text-align:center;">
-      ADONAI AGROVET
-    </h2>
-
+    <h2 style="text-align:center;">ADONAI AGROVET</h2>
     <p>Receipt No: RCPT-${Date.now()}</p>
-
     <p>Date: ${new Date().toLocaleString()}</p>
-
     <p>Customer: ${customerName}</p>
-
     <p>Sale Type: ${saleType}</p>
-
-    ${saleType === "Wholesale"
-      ? `<p>Shop: ${wholesaleShop}</p>`
-      : ""
-    }
-
+    ${saleType === "Wholesale" ? `<p>Shop: ${wholesaleShop}</p>` : ""}
     <hr>
-
     <table width="100%" border="1" cellspacing="0" cellpadding="5">
-
-      <tr>
-        <th>Item</th>
-        <th>Qty</th>
-        <th>Total</th>
-      </tr>
-
-      ${saleDetails.map(item => `
-        <tr>
-          <td>${item.product}</td>
-          <td>${item.qty}</td>
-          <td>${formatMoney(item.total)}</td>
-        </tr>
-      `).join("")}
-
+      <tr><th>Item</th><th>Qty</th><th>Total</th></tr>
+      ${saleDetails.map(item => `<tr><td>${item.product}</td><td>${item.qty}</td><td>${formatMoney(item.total)}</td></tr>`).join("")}
     </table>
-
     <hr>
-
     <p>Total: ${formatMoney(totalSale)}</p>
-
     <p>Paid: ${formatMoney(amountPaid)}</p>
-
     <p>Balance: ${formatMoney(balance)}</p>
-
-    ${balance > 0
-      ? `<p>Debtor: ${debtorName}</p>`
-      : ""
-    }
-
-    <p style="text-align:center;">
-      Thank You 🙏
-    </p>
-
+    ${balance > 0 ? `<p>Debtor: ${debtorName}</p>` : ""}
+    <p style="text-align:center;">Thank You 🙏</p>
   `;
 
   const win = window.open("", "", "width=350,height=700");
-
-  // Guard against popup blockers
-  if(!win){
-
+  if (!win) {
     alert("Popup blocked — please allow popups to print receipts. Redirecting to sales report.");
-
     window.location.href = "sales_report.html";
-
     return;
-
   }
 
   win.document.write(`
-
-    <html>
-
-      <head>
-
-        <title>Receipt</title>
-
-        <style>
-
-          body{
-            font-family:monospace;
-            padding:10px;
-          }
-
-          table{
-            width:100%;
-            border-collapse:collapse;
-            font-size:12px;
-          }
-
-        </style>
-
-      </head>
-
-      <body>
-
-        ${receiptHTML}
-
-      </body>
-
-    </html>
-
+    <html><head><title>Receipt</title>
+    <style>body{font-family:monospace;padding:10px;}table{width:100%;border-collapse:collapse;font-size:12px;}</style>
+    </head><body>${receiptHTML}</body></html>
   `);
-
   win.document.close();
-
   win.print();
 
-  // Fallback in case onafterprint doesn't fire (e.g. print cancelled in some browsers)
   let redirected = false;
+  function goToReport() { if (redirected) return; redirected = true; window.location.href = "sales_report.html"; }
 
-  function goToReport(){
-
-    if(redirected) return;
-
-    redirected = true;
-
-    window.location.href = "sales_report.html";
-
-  }
-
-  win.onafterprint = () => {
-
-    win.close();
-
-    goToReport();
-
-  };
-
-  // Safety net: if the print window gets closed manually
-  // without onafterprint firing, still redirect
-  const checkClosed = setInterval(() => {
-
-    if(win.closed){
-
-      clearInterval(checkClosed);
-
-      goToReport();
-
-    }
-
-  }, 500);
-
+  win.onafterprint = () => { win.close(); goToReport(); };
+  const checkClosed = setInterval(() => { if (win.closed) { clearInterval(checkClosed); goToReport(); } }, 500);
 }
 
-function goBack(){
-
-  const userData =
-    JSON.parse(localStorage.getItem("loggedInUser"));
-
-  if(userData?.role === "User"){
-
-    window.location.href = "user_stock.html";
-
-  } else if(userData?.role === "Admin"){
-
-    window.location.href = "Stock.html";
-
-  } else {
-
-    alert("Session expired.");
-
-    window.location.href = "Home Stock.html";
-
-  }
-
+// ── Go Back ──
+function goBack() {
+  const user = JSON.parse(localStorage.getItem("loggedInUser"));
+  if (user?.role === "User")       window.location.href = "user_stock.html";
+  else if (user?.role === "Admin") window.location.href = "Stock.html";
+  else { alert("Session expired."); window.location.href = "Home Stock.html"; }
 }
 
-updateTotals();
-
-
-   
-function openAdminDashboard(e) {
-  e.preventDefault();
-
-  // Get logged in user data
-  const userData = JSON.parse(localStorage.getItem("loggedInUser"));
-
-  // Check role and redirect
-  if (userData?.role === "User") {
-
-    window.location.href = "user_dashboard.html";
-
-  } else if (userData?.role === "Admin") {
-
-    window.location.href = "admin_dashboard.html";
-
-  } else {
-
-    alert("Session expired. Please login again.");
-
-    window.location.href = "login.html";
-
-  }
-}
-
-// ================================
-// SUPABASE SYNC FOR SELL PAGE
-// ================================
-
-const supabaseUrl = "https://quhorqxtzhpuxeujgxfw.supabase.co";
-const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1aG9ycXh0emhwdXhldWpneGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNTI2NzgsImV4cCI6MjA5NTYyODY3OH0._bldtcFHB59obsAsxC7ctKn-EqoQqKnwLTXowo2ppF8";
-
-const supabaseClient = window.supabase.createClient(
-  supabaseUrl,
-  supabaseKey
-);
-
-async function syncAllSalesToSupabase() {
-
-  let sales =
-    JSON.parse(localStorage.getItem("allSales")) || [];
-
-  if (!sales.length) {
-    console.log("No sales found in localStorage");
-    return;
-  }
-
-  // Remove exact duplicates
-  const uniqueSales = [];
-  const seen = new Set();
-
-  sales.forEach(sale => {
-
-    const key =
-      `${sale.receiptNo}_${sale.product}_${sale.date}`;
-
-    if (!seen.has(key)) {
-
-      seen.add(key);
-      uniqueSales.push(sale);
-
-    }
-
+// ── STK Push ──
+async function sendSTKPush(phone) {
+  const amount = parseFloat(document.getElementById("amountPaid").value) || 0;
+  if (amount <= 0) { alert("Enter the amount paid before sending M-Pesa prompt."); return false; }
+  const response = await fetch("https://quhorqxtzhpuxeujgxfw.supabase.co/stkpush", {
+    method: "POST",
+    headers: { "Content-Type":"application/json" },
+    body: JSON.stringify({ phone, amount })
   });
-
-  const { error } =
-    await supabaseClient
-      .from("sales")
-      .insert(uniqueSales);
-
-  if (error) {
-
-    console.error(
-      "Sell Sync Error:",
-      error
-    );
-
-  } else {
-
-    console.log(
-      "✅ allSales synced to Sales table"
-    );
-
-  }
-}
-
-// Auto sync on page load
-document.addEventListener(
-  "DOMContentLoaded",
-  () => {
-
-    if (navigator.onLine) {
-      syncAllSalesToSupabase();
-    }
-
-  }
-);
-
-// Auto sync when internet returns
-window.addEventListener(
-  "online",
-  syncAllSalesToSupabase
-);
-function togglePaymentFields(){
-
-  const payment =
-    document.getElementById("payment").value;
-
-  document
-    .getElementById("debtorField")
-    .classList.toggle(
-      "hidden",
-      payment !== "Debt"
-    );
-
-  document
-    .getElementById("mpesaField")
-    .classList.toggle(
-      "hidden",
-      payment !== "Mpesa"
-    );
-
-}
-
-document
-.getElementById("payment")
-.addEventListener(
-  "change",
-  togglePaymentFields
-);
-
-togglePaymentFields();
-async function sendSTKPush(phone){
-
-  const amount =
-    parseFloat(
-      document
-      .getElementById("amountPaid")
-      .value
-    ) || 0;
-
-  if(amount <= 0){
-    alert("Enter the amount paid before sending M-Pesa prompt.");
-    return false;
-  }
-
-  const response =
-    await fetch(
-      "https://quhorqxtzhpuxeujgxfw.supabase.co/stkpush",
-      {
-        method:"POST",
-        headers:{
-          "Content-Type":"application/json"
-        },
-        body:JSON.stringify({
-          phone,
-          amount: amount
-        })
-      }
-    );
-
   const result = await response.json();
-
   return result.success;
-
 }
-async function triggerMpesaPrompt(){
 
-  const phone =
-    document.getElementById("mpesaPhone").value.trim();
+async function triggerMpesaPrompt() {
+  const phone  = document.getElementById("mpesaPhone").value.trim();
+  const amount = parseFloat(document.getElementById("amountPaid").value) || 0;
+  if (!phone)        { alert("Please enter the customer's phone number."); return; }
+  if (amount <= 0)   { alert("Please enter the amount paid before sending M-Pesa prompt."); return; }
 
-  if(!phone){
-    alert("Please enter the customer's phone number.");
-    return;
-  }
-
-  const amount =
-    parseFloat(
-      document.getElementById("amountPaid").value
-    ) || 0;
-
-  if(amount <= 0){
-    alert("Please enter the amount paid before sending M-Pesa prompt.");
-    return;
-  }
-
-  try{
-
-    const response = await fetch(
-      "https://quhorqxtzhpuxeujgxfw.supabase.co/functions/v1/stkpush",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "apikey": supabaseKey,
-          "Authorization": "Bearer " + supabaseKey
-        },
-        body: JSON.stringify({
-          phone: phone,
-          amount: amount
-        })
-      }
-    );
-
+  try {
+    const response = await fetch("https://quhorqxtzhpuxeujgxfw.supabase.co/functions/v1/stkpush", {
+      method: "POST",
+      headers: { "Content-Type":"application/json", "apikey": supabaseKey, "Authorization": "Bearer " + supabaseKey },
+      body: JSON.stringify({ phone, amount })
+    });
     const result = await response.json();
-
-    if(response.ok){
-      alert(`✅ M-Pesa prompt of Ksh ${amount.toLocaleString()} sent successfully. The customer should enter their PIN on their phone.`);
-    }else{
-      alert(result.error || "Failed to send M-Pesa prompt.");
-    }
-
-  }catch(err){
+    if (response.ok) alert(`✅ M-Pesa prompt of Ksh ${amount.toLocaleString()} sent. Customer should enter their PIN.`);
+    else alert(result.error || "Failed to send M-Pesa prompt.");
+  } catch(err) {
     console.error(err);
     alert("Unable to connect to the payment server.");
   }
-
 }
-</script>
+
+// ── Sync ──
+async function syncAllSalesToSupabase() {
+  let sales = JSON.parse(localStorage.getItem("allSales")) || [];
+  if (!sales.length) return;
+  const seen = new Set();
+  const unique = sales.filter(s => { const k = `${s.receiptNo}_${s.product}_${s.date}`; if (seen.has(k)) return false; seen.add(k); return true; });
+  const { error } = await supabaseClient.from("sales").insert(unique);
+  if (error) console.error("Sell Sync Error:", error);
+  else console.log("✅ allSales synced");
+}
+
+// ── Init ──
+document.addEventListener("DOMContentLoaded", () => {
+  buildSidebar();
+  toggleWholesaleField();
+  toggleDebtorField();
+  togglePaymentFields();
+  updateTotals();
+  renderProducts();
+  if (navigator.onLine) syncAllSalesToSupabase();
+});
+
+window.addEventListener("online", syncAllSalesToSupabase);
 
 </script>
-
 </body>
 </html>
