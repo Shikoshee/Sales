@@ -1,0 +1,22 @@
+{
+  "name": "Inventra - Adonai Agrovet",
+  "short_name": "Inventra",
+  "description": "Stock and Sales Management System",
+  "start_url": "./Stock.html",
+  "display": "standalone",
+  "background_color": "#f4f6f9",
+  "theme_color": "#0f172a",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192x192/007BFF/ffffff?text=I",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://via.placeholder.com/512x512/007BFF/ffffff?text=I",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
