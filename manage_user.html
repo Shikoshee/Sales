@@ -1,616 +1,514 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   <meta charset="UTF-8">
-  <title>Create User (Admin Only) - Inventra</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Manage Users - Inventra</title>
+
   <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
 
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-}
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #eef2ff, #dbeafe);
+      min-height: 100vh;
+      color: #333;
+    }
 
-body{
-  font-family:'Segoe UI',Tahoma,Geneva,Verdana,sans-serif;
-  background:linear-gradient(135deg,#eef2ff,#dbeafe);
-  min-height:100vh;
-  padding:30px 15px;
-  color:#333;
-}
+    /* ── Sidebar ── */
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      height: 100vh;
+      width: 64px;
+      background: #0f172a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 0;
+      gap: 4px;
+      z-index: 1000;
+      transition: width 0.25s ease;
+      overflow: hidden;
+    }
 
-/* Dashboard Button */
-.dashboard-btn{
-  position:fixed;
-  top:20px;
-  left:20px;
-  background:linear-gradient(135deg,#2563eb,#1d4ed8);
-  color:#fff;
-  padding:12px 20px;
-  border-radius:12px;
-  font-weight:600;
-  text-decoration:none;
-  box-shadow:0 4px 10px rgba(0,0,0,0.15);
-  transition:0.3s;
-  z-index:1000;
-}
+    .sidebar.active {
+      width: 220px;
+      align-items: flex-start;
+      padding: 16px 12px;
+    }
 
-.dashboard-btn:hover{
-  transform:translateY(-2px);
-  background:linear-gradient(135deg,#1d4ed8,#1e40af);
-}
+    .sidebar-logo {
+      width: 36px; height: 36px;
+      border-radius: 8px; background: #1e293b;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 8px; flex-shrink: 0;
+    }
 
-/* Main Containers */
-.container,
-.user-list{
-  background:#fff;
-  border-radius:20px;
-  padding:30px;
-  box-shadow:0 8px 25px rgba(0,0,0,0.08);
-  margin:auto;
-  margin-bottom:25px;
-}
+    .sidebar.active .sidebar-logo {
+      width: 100%; height: auto;
+      background: transparent; border-radius: 0;
+      flex-direction: row; gap: 10px;
+      padding: 8px 4px; margin-bottom: 4px;
+    }
 
-.container{
-  max-width:450px;
-}
+    .sidebar-logo i { font-size: 20px; color: #60a5fa; }
 
-.user-list{
-  max-width:900px;
-}
+    .sidebar-logo-text {
+      display: none; font-size: 15px; font-weight: 500;
+      color: #f1f5f9; white-space: nowrap;
+    }
 
-/* Headings */
-h2{
-  text-align:center;
-  margin-bottom:25px;
-  color:#1e3a8a;
-  font-size:28px;
-}
+    .sidebar.active .sidebar-logo-text { display: block; }
 
-/* Form */
-.form-group{
-  margin-bottom:20px;
-}
+    .sidebar-divider {
+      width: 36px; height: 0.5px;
+      background: #1e293b;
+      margin: 4px 0 8px; flex-shrink: 0;
+    }
 
-label{
-  display:block;
-  margin-bottom:8px;
-  font-weight:600;
-  color:#374151;
-}
+    .sidebar.active .sidebar-divider {
+      width: calc(100% - 8px);
+      margin: 4px 4px 8px;
+    }
 
-input,
-select{
-  width:100%;
-  padding:14px;
-  border:1px solid #d1d5db;
-  border-radius:12px;
-  font-size:15px;
-  transition:0.3s;
-  background:#f9fafb;
-}
+    .sidebar a {
+      width: 36px; height: 36px;
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      text-decoration: none; color: #94a3b8;
+      flex-shrink: 0;
+      transition: background 0.15s ease, color 0.15s ease;
+      gap: 10px;
+    }
 
-input:focus,
-select:focus{
-  border-color:#2563eb;
-  outline:none;
-  background:#fff;
-  box-shadow:0 0 0 3px rgba(37,99,235,0.15);
-}
+    .sidebar.active a {
+      width: 100%; height: auto;
+      padding: 10px 12px;
+      justify-content: flex-start;
+    }
 
-/* Buttons */
-.btn{
-  width:100%;
-  padding:14px;
-  border:none;
-  border-radius:12px;
-  background:linear-gradient(135deg,#2563eb,#1d4ed8);
-  color:#fff;
-  font-size:16px;
-  font-weight:600;
-  cursor:pointer;
-  transition:0.3s;
-}
+    .sidebar a i { font-size: 18px; flex-shrink: 0; }
+    .sidebar.active a i { font-size: 17px; }
 
-.btn:hover{
-  transform:translateY(-2px);
-  box-shadow:0 6px 15px rgba(37,99,235,0.3);
-}
+    .sidebar a .nav-label { display: none; font-size: 14px; white-space: nowrap; }
+    .sidebar.active a .nav-label { display: block; }
 
-/* Messages */
-.msg{
-  margin-bottom:20px;
-  text-align:center;
-  font-weight:bold;
-  font-size:15px;
-}
+    .sidebar a:hover { background: #1e293b; color: #e2e8f0; }
+    .sidebar a.active-link { background: #1e3a5f; color: #60a5fa; }
+    .sidebar a.logout-link { color: #f87171; margin-top: auto; }
+    .sidebar a.logout-link:hover { background: #2d1a1a; }
 
-.error{
-  color:#dc2626;
-  font-size:14px;
-  margin-top:5px;
-  display:block;
-}
+    .sidebar-spacer { flex: 1; }
 
-/* Table */
-table{
-  width:100%;
-  border-collapse:collapse;
-  overflow:hidden;
-  border-radius:12px;
-}
+    .toggle-btn {
+      position: fixed; top: 14px; left: 14px;
+      background: transparent; color: #60a5fa;
+      border: none; padding: 8px;
+      cursor: pointer; border-radius: 6px;
+      font-size: 20px; z-index: 1002;
+      transition: background 0.15s;
+    }
 
-th{
-  background:linear-gradient(135deg,#2563eb,#1d4ed8);
-  color:#fff;
-  padding:15px;
-  text-align:left;
-  font-size:15px;
-}
+    .toggle-btn:hover { background: #1e293b; }
 
-td{
-  padding:14px;
-  border-bottom:1px solid #e5e7eb;
-  background:#fff;
-}
+    /* ── Main content ── */
+    .main-content {
+      margin-left: 64px;
+      padding: 30px 15px;
+      transition: margin-left 0.25s ease;
+    }
 
-tr:hover td{
-  background:#f8fafc;
-}
+    .sidebar.active ~ .main-content { margin-left: 220px; }
 
-/* Action Buttons */
-.action-btn{
-  border:none;
-  padding:8px 14px;
-  border-radius:8px;
-  color:#fff;
-  font-size:14px;
-  cursor:pointer;
-  margin-right:5px;
-  transition:0.3s;
-}
+    /* ── Page styles ── */
+    .container, .user-list {
+      background: #fff;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 8px 25px rgba(0,0,0,0.08);
+      margin: auto;
+      margin-bottom: 25px;
+    }
 
-.edit-btn{
-  background:#16a34a;
-}
+    .container  { max-width: 450px; }
+    .user-list  { max-width: 900px; }
 
-.edit-btn:hover{
-  background:#15803d;
-}
+    h2 {
+      text-align: center;
+      margin-bottom: 25px;
+      color: #1e3a8a;
+      font-size: 28px;
+    }
 
-.delete-btn{
-  background:#dc2626;
-}
+    .form-group { margin-bottom: 20px; }
 
-.delete-btn:hover{
-  background:#b91c1c;
-}
+    label {
+      display: block;
+      margin-bottom: 8px;
+      font-weight: 600;
+      color: #374151;
+    }
 
-/* Mobile Responsive */
-@media(max-width:768px){
+    input, select {
+      width: 100%;
+      padding: 14px;
+      border: 1px solid #d1d5db;
+      border-radius: 12px;
+      font-size: 15px;
+      transition: 0.3s;
+      background: #f9fafb;
+    }
 
-  body{
-    padding:20px 10px;
-  }
+    input:focus, select:focus {
+      border-color: #2563eb;
+      outline: none;
+      background: #fff;
+      box-shadow: 0 0 0 3px rgba(37,99,235,0.15);
+    }
 
-  .container,
-  .user-list{
-    padding:20px;
-  }
+    .btn {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #fff;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: 0.3s;
+    }
 
-  h2{
-    font-size:22px;
-  }
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 15px rgba(37,99,235,0.3);
+    }
 
-  table{
-    font-size:14px;
-  }
+    .msg { margin-bottom: 20px; text-align: center; font-weight: bold; font-size: 15px; }
 
-  th,td{
-    padding:10px;
-  }
+    .error { color: #dc2626; font-size: 14px; margin-top: 5px; display: block; }
 
-  .dashboard-btn{
-    padding:10px 16px;
-    font-size:14px;
-  }
+    table { width: 100%; border-collapse: collapse; overflow: hidden; border-radius: 12px; }
 
-}
+    th {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: #fff; padding: 15px;
+      text-align: left; font-size: 15px;
+    }
 
-</style>
+    td { padding: 14px; border-bottom: 1px solid #e5e7eb; background: #fff; }
+    tr:hover td { background: #f8fafc; }
+
+    .action-btn {
+      border: none; padding: 8px 14px;
+      border-radius: 8px; color: #fff;
+      font-size: 14px; cursor: pointer;
+      margin-right: 5px; transition: 0.3s;
+    }
+
+    .edit-btn   { background: #16a34a; }
+    .edit-btn:hover   { background: #15803d; }
+    .delete-btn { background: #dc2626; }
+    .delete-btn:hover { background: #b91c1c; }
+
+    @media(max-width:768px){
+      .container, .user-list { padding: 20px; }
+      h2 { font-size: 22px; }
+      table { font-size: 14px; }
+      th, td { padding: 10px; }
+    }
+  </style>
 </head>
 <body>
-  <a href="#" class="dashboard-btn" onclick="openAdminDashboard(event)">🏠 Dashboard</a>
-<div class="container">
-  <h2>Create New User</h2>
 
-  <!-- Message display -->
-  <div class="msg" id="msg"></div>
+<!-- Toggle Button -->
+<button class="toggle-btn" onclick="toggleSidebar()" aria-label="Toggle menu">
+  <i class="ti ti-menu-2"></i>
+</button>
 
-  <form id="createUserForm" onsubmit="return createUser(event)">
-    <div class="form-group">
-      <label for="email">Email:</label>
-      <input type="email" id="email" required>
-    </div>
-
-    <div class="form-group">
-      <label for="password">Password:</label>
-      <input type="password" id="password" required>
-    </div>
-
-    <div class="form-group">
-      <label for="confirm_password">Confirm Password:</label>
-      <input type="password" id="confirm_password" required>
-      <small id="errorMsg" class="error"></small>
-    </div>
-
-    <div class="form-group">
-      <label for="role">Role:</label>
-      <select id="role" required>
-        <option value="User">User</option>
-        <option value="Admin">Admin</option>
-      </select>
-    </div>
-
-    <button type="submit" class="btn">Create User</button>
-  </form>
+<!-- Sidebar — Admin only page, always shows admin links -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <i class="ti ti-package" aria-hidden="true"></i>
+    <span class="sidebar-logo-text">Inventra</span>
+  </div>
+  <div class="sidebar-divider"></div>
+  <div id="sidebarLinks"></div>
+  <div class="sidebar-spacer"></div>
+  <div class="sidebar-divider"></div>
+  <a href="Home Stock.html" class="logout-link">
+    <i class="ti ti-logout" aria-hidden="true"></i>
+    <span class="nav-label">Logout</span>
+  </a>
 </div>
 
-<!-- ✅ List of created users -->
-<div class="user-list">
-  <h2>Existing Users</h2>
-  <table id="userTable">
-    <thead>
-      <tr>
-        <th>Email</th>
-        <th>Role</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody id="userTableBody"></tbody>
-  </table>
+<!-- Main Content -->
+<div class="main-content">
+
+  <!-- Create User Form -->
+  <div class="container">
+    <h2>Create New User</h2>
+    <div class="msg" id="msg"></div>
+
+    <form id="createUserForm" onsubmit="return createUser(event)">
+      <div class="form-group">
+        <label for="username">Username:</label>
+        <input type="text" id="username" required>
+      </div>
+      <div class="form-group">
+        <label for="password">Password:</label>
+        <input type="password" id="password" required>
+      </div>
+      <div class="form-group">
+        <label for="confirm_password">Confirm Password:</label>
+        <input type="password" id="confirm_password" required>
+        <small id="errorMsg" class="error"></small>
+      </div>
+      <div class="form-group">
+        <label for="role">Role:</label>
+        <select id="role" required>
+          <option value="User">User</option>
+          <option value="Admin">Admin</option>
+        </select>
+      </div>
+      <button type="submit" class="btn">Create User</button>
+    </form>
+  </div>
+
+  <!-- User List -->
+  <div class="user-list">
+    <h2>Existing Users</h2>
+    <table id="userTable">
+      <thead>
+        <tr>
+          <th>Username</th>
+          <th>Role</th>
+          <th>Actions</th>
+        </tr>
+      </thead>
+      <tbody id="userTableBody"></tbody>
+    </table>
+  </div>
+
 </div>
+<!-- End .main-content -->
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-
 <script>
-  
+
+// ── Supabase ──
 const supabaseUrl = "https://quhorqxtzhpuxeujgxfw.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1aG9ycXh0emhwdXhldWpneGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNTI2NzgsImV4cCI6MjA5NTYyODY3OH0._bldtcFHB59obsAsxC7ctKn-EqoQqKnwLTXowo2ppF8";
+const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-
-const supabaseClient =
-  window.supabase.createClient(
-    supabaseUrl,
-    supabaseKey
-  );
-
-  // ✅ Ensure only admins can access this page
-  const currentUser = JSON.parse(localStorage.getItem('loggedInUser'));
-if (!currentUser || currentUser.role !== 'Admin') {
-  alert('❌ Unauthorized access! Only Admins can create users.');
-  window.location.href = 'Home Stock.html';
+// ── Guard: Admin only ──
+const currentUser = JSON.parse(localStorage.getItem("loggedInUser"));
+if (!currentUser || currentUser.role !== "Admin") {
+  alert("❌ Unauthorized access! Only Admins can manage users.");
+  window.location.href = "Home Stock.html";
 }
-// ✅ Function to render user list
-  // ✅ Render user list
- function renderUsers() {
-  const users =
-    JSON.parse(localStorage.getItem("users")) || [];
 
-  const tableBody =
-    document.getElementById("userTableBody");
+// ── Sidebar (Admin links only — this page is admin-only) ──
+const ADMIN_LINKS = [
+  { href:"admin_dashboard.html", icon:"ti-home",          label:"Dashboard" },
+  { href:"Stock.html",           icon:"ti-box",           label:"Stock"     },
+  { href:"Sell.html",            icon:"ti-shopping-cart", label:"Sell"      },
+  { href:"debts.html",           icon:"ti-coin",          label:"Debts"     },
+  { href:"sales_report.html",    icon:"ti-chart-bar",     label:"Reports"   },
+  { href:"manage_user.html",     icon:"ti-users",         label:"Users"     },
+];
 
+function buildSidebar() {
+  const currentPage = window.location.pathname.split("/").pop();
+  document.getElementById("sidebarLinks").innerHTML = ADMIN_LINKS.map(l => `
+    <a href="${l.href}" ${l.href === currentPage ? 'class="active-link"' : ''}>
+      <i class="ti ${l.icon}" aria-hidden="true"></i>
+      <span class="nav-label">${l.label}</span>
+    </a>
+  `).join("");
+}
+
+function toggleSidebar() {
+  document.getElementById("sidebar").classList.toggle("active");
+}
+
+// ── Render users ──
+function renderUsers() {
+  const users    = JSON.parse(localStorage.getItem("users")) || [];
+  const tableBody = document.getElementById("userTableBody");
   tableBody.innerHTML = "";
+
+  if (!users.length) {
+    tableBody.innerHTML = `<tr><td colspan="3" style="text-align:center;color:#777;padding:20px;">No users found.</td></tr>`;
+    return;
+  }
 
   users.forEach((user, index) => {
     tableBody.innerHTML += `
       <tr>
-        <td>${user.email}</td>
+        <td>${user.username}</td>
         <td>${user.role}</td>
         <td>
-          <button
-            class="action-btn edit-btn"
-            onclick="editUser(${index})">
-            Edit
-          </button>
-
-          <button
-            class="action-btn delete-btn"
-            onclick="deleteUser(${index})">
-            Delete
-          </button>
+          <button class="action-btn edit-btn"   onclick="editUser(${index})">Edit</button>
+          <button class="action-btn delete-btn" onclick="deleteUser(${index})">Delete</button>
         </td>
-      </tr>
-    `;
+      </tr>`;
   });
 }
-  // ✅ Create user in localStorage
-  //function createUser(event) {
-    async function createUser(event) {
-event.preventDefault();
 
-const email =
-document.getElementById("email")
-.value.trim()
-.toLowerCase();
+// ── Create user ──
+async function createUser(event) {
+  event.preventDefault();
 
-const password =
-document.getElementById("password").value;
+  const username    = document.getElementById("username").value.trim();
+  const password    = document.getElementById("password").value;
+  const confirmPass = document.getElementById("confirm_password").value;
+  const role        = document.getElementById("role").value;
+  const msg         = document.getElementById("msg");
+  const errorMsg    = document.getElementById("errorMsg");
 
-const confirmPass =
-document.getElementById("confirm_password").value;
+  if (password.length < 6) {
+    errorMsg.textContent = "Password must be at least 6 characters.";
+    return false;
+  }
 
-const role = String(document.getElementById("role").value);
+  if (password !== confirmPass) {
+    errorMsg.textContent = "Passwords do not match!";
+    return false;
+  }
 
-const msg =
-document.getElementById("msg");
+  errorMsg.textContent = "";
 
-const errorMsg =
-document.getElementById("errorMsg");
+  let users = JSON.parse(localStorage.getItem("users")) || [];
 
-if (password.length < 6) {
-errorMsg.textContent =
-"Password must be at least 6 characters.";
-return false;
+  if (users.some(u => u.username?.toLowerCase() === username.toLowerCase())) {
+    msg.style.color = "red";
+    msg.textContent = "⚠️ Username already exists!";
+    return false;
+  }
+
+  const newUser = {
+    id:         crypto.randomUUID(),
+    username,
+    password,
+    role,
+    synced:     false,
+    updated_at: new Date().toISOString()
+  };
+
+  users.push(newUser);
+  localStorage.setItem("users", JSON.stringify(users));
+  renderUsers();
+
+  if (navigator.onLine) {
+    const { error } = await supabaseClient.from("users").upsert([newUser]);
+    if (error) console.error("Sync error:", error);
+  }
+
+  msg.style.color = "green";
+  msg.textContent = "✅ User created successfully!";
+  document.getElementById("createUserForm").reset();
+
+  return false;
 }
 
-if (password !== confirmPass) {
-errorMsg.textContent =
-"Passwords do not match!";
-return false;
-}
+// ── Edit user ──
+async function editUser(index) {
+  const users = JSON.parse(localStorage.getItem("users")) || [];
+  const user  = users[index];
 
-errorMsg.textContent = "";
+  const newUsername = prompt("Edit username:", user.username);
+  const newPassword = prompt("Edit password:", user.password);
+  const newRole     = prompt("Edit role (Admin/User):", user.role);
 
-let users =
-JSON.parse(
-localStorage.getItem("users")
-) || [];
+  if (newUsername && newPassword && newRole) {
+    users[index].username   = newUsername;
+    users[index].password   = newPassword;
+    users[index].role       = newRole;
+    users[index].updated_at = new Date().toISOString();
 
-if (
-users.some(
-u =>
-u.email &&
-u.email.toLowerCase() === email
-)
-) {
-msg.style.color = "red";
-msg.textContent =
-"⚠️ Email already exists!";
-return false;
-}
-
-const newUser = {
-  id: crypto.randomUUID(), // IMPORTANT
-  email,
-  password,
-  role,
-  synced: false,
-  updated_at: new Date().toISOString()
-};
-users.push(newUser);
-
-users.push(newUser);
-
-localStorage.setItem(
-  "users",
-  JSON.stringify(users)
-);
-
-renderUsers();
-
-const { error } =
-await supabaseClient
-.from("users")
-.upsert([newUser]);
-
-if (error) {
-console.error(error);
-}
-
-msg.style.color = "green";
-msg.textContent =
-"✅ User created successfully!";
-
-document
-.getElementById("createUserForm")
-.reset();
-
-renderUsers();
-
-return false;
-}
-
-  // ✅ Edit user
-  async function editUser(index) {
-  const users =
-    JSON.parse(localStorage.getItem("users")) || [];
-
-  const user = users[index];
-
-  const newEmail =
-    prompt("Edit email:", user.email);
-
-  const newPassword =
-    prompt("Edit password:", user.password);
-
-  const newRole =
-    prompt("Edit role (Admin/User):", user.role);
-
-  if (newEmail && newPassword && newRole) {
-
-    users[index].email =
-      newEmail.toLowerCase();
-
-    users[index].password =
-      newPassword;
-
-    users[index].role =
-      newRole;
-
-    localStorage.setItem(
-      "users",
-      JSON.stringify(users)
-    );
-
-    const { error } =
-      await supabaseClient
-        .from("users")
-        .upsert(users[index]);
-
-    if (error) {
-      console.error(error);
-    }
-
+    localStorage.setItem("users", JSON.stringify(users));
     renderUsers();
+
+    if (navigator.onLine) {
+      const { error } = await supabaseClient.from("users").upsert([users[index]]);
+      if (error) console.error("Sync error:", error);
+    }
 
     alert("✅ User updated successfully!");
   }
 }
 
-  // ✅ Delete user
-  async function deleteUser(index) {
+// ── Delete user ──
+async function deleteUser(index) {
+  if (!confirm("Delete this user?")) return;
 
-  if (!confirm("Delete this user?"))
-    return;
-
-  let users =
-    JSON.parse(localStorage.getItem("users")) || [];
-
-  const deletedUser =
-    users[index];
-
+  let users       = JSON.parse(localStorage.getItem("users")) || [];
+  const deleted   = users[index];
   users.splice(index, 1);
-
-  localStorage.setItem(
-    "users",
-    JSON.stringify(users)
-  );
-
-  const { error } =
-    await supabaseClient
-      .from("users")
-      .delete()
-      .eq("id", deletedUser.id);
-
-  if (error) {
-    console.error(error);
-  }
-
+  localStorage.setItem("users", JSON.stringify(users));
   renderUsers();
+
+  if (navigator.onLine) {
+    const { error } = await supabaseClient.from("users").delete().eq("id", deleted.id);
+    if (error) console.error("Delete error:", error);
+  }
 }
 
-  // ✅ Load users when page loads
-  renderUsers();
-  function openAdminDashboard(e) {
-  e.preventDefault();
-  window.location.href = "admin_dashboard.html";
-}
-  async function syncAllUsersToSupabase() {
+// ── Sync helpers ──
+async function syncAllUsersToSupabase() {
+  if (!navigator.onLine) return;
+  let users = JSON.parse(localStorage.getItem("users")) || [];
+  const unsynced = users.filter(u => !u.synced);
+  if (!unsynced.length) return;
 
-  if (!navigator.onLine) {
-    console.log("Offline - sync skipped");
-    return;
-  }
-
-  let users =
-    JSON.parse(
-      localStorage.getItem("users")
-    ) || [];
-
-  const unsyncedUsers =
-    users.filter(
-      u => !u.synced
-    );
-
-  if (unsyncedUsers.length === 0)
-    return;
-
-  const payload =
-    unsyncedUsers.map(u => ({
-      id: u.id,
-      email: u.email,
-      password: u.password,
-      role: u.role
-    }));
-
-  const { error } =
-    await supabaseClient
-      .from("users")
-      .upsert(payload);
-
-  if (error) {
-    console.error(error);
-    return;
-  }
-
-  users = users.map(u => ({
-    ...u,
-    synced: true
-  }));
-
-  localStorage.setItem(
-    "users",
-    JSON.stringify(users)
+  const { error } = await supabaseClient.from("users").upsert(
+    unsynced.map(u => ({ id:u.id, username:u.username, password:u.password, role:u.role }))
   );
 
-  console.log(
-    "✅ Offline users synced"
-  );
+  if (error) { console.error(error); return; }
+
+  users = users.map(u => ({ ...u, synced: true }));
+  localStorage.setItem("users", JSON.stringify(users));
+  console.log("✅ Users synced to Supabase");
 }
+
 async function loadUsersFromSupabase() {
-
-
-document.addEventListener(
-  "DOMContentLoaded",
-  async () => {
-
-    // Load users from Supabase first
-    await loadUsersFromSupabase();
-
-    // Display them
+  const { data, error } = await supabaseClient.from("users").select("*");
+  if (error) { console.error(error); return; }
+  if (data?.length) {
+    localStorage.setItem("users", JSON.stringify(data));
     renderUsers();
-
-    // Push any local changes back
-    await syncAllUsersToSupabase();
-
   }
-);
+}
+
+// ── Real-time ──
 supabaseClient
   .channel("users-live")
-  .on(
-    "postgres_changes",
-    {
-      event: "*",
-      schema: "public",
-      table: "users"
-    },
-    async () => {
-
-      await loadUsersFromSupabase();
-      renderUsers();
-
-    }
-  )
-  .subscribe();
-  }
-  window.addEventListener(
-  "online",
-  async () => {
-
-    console.log(
-      "Internet restored"
-    );
-
-    await syncAllUsersToSupabase();
-
+  .on("postgres_changes", { event:"*", schema:"public", table:"users" }, async () => {
     await loadUsersFromSupabase();
-
     renderUsers();
+  })
+  .subscribe();
 
+// ── Init ──
+document.addEventListener("DOMContentLoaded", async () => {
+  buildSidebar();
+  renderUsers();
+  if (navigator.onLine) {
+    await loadUsersFromSupabase();
+    await syncAllUsersToSupabase();
   }
-);
+});
+
+window.addEventListener("online", async () => {
+  await syncAllUsersToSupabase();
+  await loadUsersFromSupabase();
+  renderUsers();
+});
+
 </script>
 </body>
 </html>
