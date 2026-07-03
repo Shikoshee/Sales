@@ -1,8 +1,9 @@
-const CACHE_NAME = "inventra-v1";
+const CACHE_NAME = "inventra-v3";
 
-// All pages and assets to cache on install
-const PAGES_TO_CACHE = [
+const FILES_TO_CACHE = [
   "./",
+  "./index.html",
+  "./Home Stock.html",
   "./Stock.html",
   "./Sell.html",
   "./sales_report.html",
@@ -11,132 +12,81 @@ const PAGES_TO_CACHE = [
   "./user_stock.html",
   "./admin_dashboard.html",
   "./user_dashboard.html",
-  "./Home Stock.html",
-  "./login.html"
+  "./manifest.json",
+  "./icons/icon-72.png",
+  "./icons/icon-96.png",
+  "./icons/icon-128.png",
+  "./icons/icon-144.png",
+  "./icons/icon-192.png",
+  "./icons/icon-512.png"
 ];
 
-// ── Install: cache all pages ──
 self.addEventListener("install", event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      console.log("✅ Caching app pages...");
-      // Cache each page individually so one failure doesn't break all
-      return Promise.allSettled(
-        PAGES_TO_CACHE.map(page =>
-          cache.add(page).catch(err =>
-            console.warn(`Could not cache ${page}:`, err)
-          )
+    caches.open(CACHE_NAME).then(cache =>
+      Promise.allSettled(
+        FILES_TO_CACHE.map(f =>
+          cache.add(f).catch(err => console.warn("Could not cache:", f, err))
         )
-      );
-    })
+      )
+    )
   );
-  // Take control immediately without waiting
   self.skipWaiting();
 });
 
-// ── Activate: clean up old caches ──
 self.addEventListener("activate", event => {
   event.waitUntil(
     caches.keys().then(keys =>
-      Promise.all(
-        keys
-          .filter(key => key !== CACHE_NAME)
-          .map(key => {
-            console.log("🗑 Deleting old cache:", key);
-            return caches.delete(key);
-          })
-      )
+      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
     )
   );
   self.clients.claim();
 });
 
-// ── Fetch: serve from cache, fall back to network ──
 self.addEventListener("fetch", event => {
-
-  // Skip non-GET requests and Supabase API calls
-  // (Supabase handles its own offline behaviour)
   if (event.request.method !== "GET") return;
-  if (event.request.url.includes("supabase.co")) return;
-  if (event.request.url.includes("cdn.jsdelivr.net")) return;
+  if (event.request.url.includes("supabase.co"))         return;
+  if (event.request.url.includes("cdn.jsdelivr.net"))    return;
   if (event.request.url.includes("cdnjs.cloudflare.com")) return;
 
   event.respondWith(
-    caches.match(event.request).then(cachedResponse => {
-
-      if (cachedResponse) {
-        // Serve from cache immediately
-        // Also fetch fresh copy in background to update cache
-        fetch(event.request)
-          .then(networkResponse => {
-            if (networkResponse && networkResponse.status === 200) {
-              caches.open(CACHE_NAME).then(cache => {
-                cache.put(event.request, networkResponse.clone());
-              });
-            }
-          })
-          .catch(() => {}); // Silently fail if offline
-
-        return cachedResponse;
+    caches.match(event.request).then(cached => {
+      if (cached) {
+        // Serve from cache + silently refresh in background
+        fetch(event.request).then(res => {
+          if (res?.ok)
+            caches.open(CACHE_NAME).then(c => c.put(event.request, res));
+        }).catch(() => {});
+        return cached;
       }
-
-      // Not in cache — try network
-      return fetch(event.request)
-        .then(networkResponse => {
-          // Cache the new response for next time
-          if (networkResponse && networkResponse.status === 200) {
-            const responseToCache = networkResponse.clone();
-            caches.open(CACHE_NAME).then(cache => {
-              cache.put(event.request, responseToCache);
-            });
-          }
-          return networkResponse;
-        })
-        .catch(() => {
-          // Completely offline and not cached
-          // Return a simple offline fallback page
-          return new Response(
-            `<!DOCTYPE html>
-            <html>
-              <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Offline - Inventra</title>
-                <style>
-                  body {
-                    font-family: Arial, sans-serif;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    justify-content: center;
-                    min-height: 100vh;
-                    background: #f4f6f9;
-                    color: #333;
-                    text-align: center;
-                    padding: 20px;
-                  }
-                  h1 { font-size: 2rem; color: #007BFF; margin-bottom: 10px; }
-                  p  { color: #666; margin-bottom: 20px; }
-                  a  {
-                    background: #007BFF; color: white;
-                    padding: 12px 24px; border-radius: 8px;
-                    text-decoration: none; font-weight: bold;
-                  }
-                </style>
-              </head>
-              <body>
-                <h1>📦 Inventra</h1>
-                <p>You're offline. Please check your internet connection.</p>
-                <p>Previously visited pages are available — try navigating back.</p>
-                <a href="./Stock.html">Go to Stock</a>
-              </body>
-            </html>`,
-            {
-              status: 200,
-              headers: { "Content-Type": "text/html" }
-            }
-          );
-        });
+      return fetch(event.request).then(res => {
+        if (res?.ok) {
+          caches.open(CACHE_NAME).then(c => c.put(event.request, res.clone()));
+        }
+        return res;
+      }).catch(() => new Response(`
+        <!DOCTYPE html><html><head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width,initial-scale=1">
+        <title>Offline – Inventra</title>
+        <style>
+          *{margin:0;padding:0;box-sizing:border-box}
+          body{font-family:Arial,sans-serif;background:#f4f6f9;display:flex;
+               flex-direction:column;align-items:center;justify-content:center;
+               min-height:100vh;text-align:center;padding:24px}
+          .icon{font-size:72px;margin-bottom:16px}
+          h1{color:#0f172a;margin-bottom:8px}
+          p{color:#64748b;margin-bottom:24px;line-height:1.6}
+          a{background:#2563eb;color:#fff;padding:12px 28px;
+            border-radius:10px;text-decoration:none;font-weight:700}
+        </style></head><body>
+        <div class="icon">📦</div>
+        <h1>Inventra</h1>
+        <p>You are offline.<br>Previously visited pages are still available.</p>
+        <a href="./index.html">Open App</a>
+        </body></html>`,
+        { status:200, headers:{ "Content-Type":"text/html" } }
+      ));
     })
   );
 });
