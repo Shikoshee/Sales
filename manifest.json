@@ -1,22 +1,26 @@
 {
   "name": "Inventra - Adonai Agrovet",
   "short_name": "Inventra",
-  "description": "Stock and Sales Management System",
-  "start_url": "./Stock.html",
+  "description": "Stock and Sales Management System for Adonai Agrovet",
+  "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
-  "background_color": "#f4f6f9",
-  "theme_color": "#0f172a",
   "orientation": "portrait-primary",
+  "background_color": "#0f172a",
+  "theme_color": "#0f172a",
+  "lang": "en",
+  "categories": ["business", "productivity"],
   "icons": [
-    {
-      "src": "https://via.placeholder.com/192x192/007BFF/ffffff?text=I",
-      "sizes": "192x192",
-      "type": "image/png"
-    },
-    {
-      "src": "https://via.placeholder.com/512x512/007BFF/ffffff?text=I",
-      "sizes": "512x512",
-      "type": "image/png"
-    }
+    { "src": "./icons/icon-72.png",  "sizes": "72x72",   "type": "image/png", "purpose": "any maskable" },
+    { "src": "./icons/icon-96.png",  "sizes": "96x96",   "type": "image/png", "purpose": "any maskable" },
+    { "src": "./icons/icon-128.png", "sizes": "128x128", "type": "image/png", "purpose": "any maskable" },
+    { "src": "./icons/icon-144.png", "sizes": "144x144", "type": "image/png", "purpose": "any maskable" },
+    { "src": "./icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable" },
+    { "src": "./icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Stock",        "url": "./Stock.html",        "icons": [{ "src": "./icons/icon-96.png", "sizes": "96x96" }] },
+    { "name": "Sell",         "url": "./Sell.html",         "icons": [{ "src": "./icons/icon-96.png", "sizes": "96x96" }] },
+    { "name": "Sales Report", "url": "./sales_report.html", "icons": [{ "src": "./icons/icon-96.png", "sizes": "96x96" }] }
   ]
 }
