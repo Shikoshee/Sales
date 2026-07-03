@@ -12,7 +12,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Inventra">
 <link rel="apple-touch-icon" href="./icons/icon-192.png">
-
+<script src="./modal.js"></script>
 <script>
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
@@ -45,7 +45,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Stock - User View</title>
-
+ 
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -228,7 +228,7 @@
 
     .sidebar a.active-link { background: #1e3a5f; color: #60a5fa; }
 
-    .sidebar a.logout-link { color: #f87171; margin-top: auto; }
+    .sidebar a.logout-link { color: #f50707; margin-top: auto; }
     .sidebar a.logout-link:hover { background: #2d1a1a; }
 
     .sidebar-spacer { flex: 1; }
@@ -296,28 +296,18 @@
     <i class="ti ti-coin" aria-hidden="true"></i>
     <span class="nav-label">Debts</span>
   </a>
-
   <div class="sidebar-spacer"></div>
   <div class="sidebar-divider"></div>
-
   <a href="index.html" class="logout-link">
     <i class="ti ti-logout" aria-hidden="true"></i>
     <span class="nav-label">Logout</span>
   </a>
 </div>
-
 <!-- Main Content -->
 <div class="main-content">
 
-  <h1>📦 Stock (User View)</h1>
-
-  <!-- Backup / Restore -->
-  <div class="btn-container">
-    <button class="btn btn-add" onclick="backupProducts()">🧾 Backup Products</button>
-    <button class="btn btn-edit" onclick="document.getElementById('restoreFile').click()">🔁 Restore Products</button>
-    <input type="file" id="restoreFile" accept=".json" style="display:none" onchange="restoreProducts(event)">
-  </div>
-
+  <h1>📦 Stock </h1>
+ 
   <!-- Search + Sort -->
   <div class="top-bar">
     <div class="search-bar">
@@ -428,40 +418,6 @@ function proceedToSell() {
   }
   localStorage.setItem("sellIndices", JSON.stringify(selected));
   window.location.href = "Sell.html";
-}
-
-// ── Backup ──
-function backupProducts() {
-  if (!products.length) return alert("No products to back up.");
-  const blob = new Blob([JSON.stringify(products)], { type: "application/json" });
-  const a = document.createElement("a");
-  a.href = URL.createObjectURL(blob);
-  a.download = `products_backup_${new Date().toISOString().split("T")[0]}.json`;
-  a.click();
-}
-
-// ── Restore ──
-function restoreProducts(event) {
-  const file = event.target.files[0];
-  if (!file) return;
-  const reader = new FileReader();
-  reader.onload = e => {
-    try {
-      const restored = JSON.parse(e.target.result);
-      if (Array.isArray(restored)) {
-        products = restored;
-        localStorage.setItem("products", JSON.stringify(products));
-        renderTable();
-        alert("✅ Products restored successfully!");
-        if (navigator.onLine) syncProductsToSupabase();
-      } else {
-        alert("❌ Invalid file format.");
-      }
-    } catch {
-      alert("❌ Error reading file.");
-    }
-  };
-  reader.readAsText(file);
 }
 
 // ── Toggle Sidebar ──
