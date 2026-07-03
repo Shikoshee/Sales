@@ -1,11 +1,52 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- ═══════════════════════════════════════════
+     PASTE THIS BLOCK INTO <head> OF EVERY PAGE
+     ═══════════════════════════════════════════ -->
 
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#0f172a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Inventra">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
 
-<title>Sales Report</title>
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./sw.js")
+        .then(r => console.log("✅ SW registered:", r.scope))
+        .catch(e => console.error("❌ SW failed:", e));
+    });
+  }
+
+  window.addEventListener("beforeinstallprompt", e => {
+    e.preventDefault();
+    window._installPrompt = e;
+    document.querySelectorAll(".pwa-install-btn").forEach(btn => {
+      btn.style.display = "flex";
+    });
+  });
+
+  window.addEventListener("appinstalled", () => {
+    window._installPrompt = null;
+    document.querySelectorAll(".pwa-install-btn").forEach(btn => {
+      btn.style.display = "none";
+    });
+  });
+</script>
+
+<!-- ═══════════════════════════════════════════
+     END OF HEAD SNIPPET
+     ═══════════════════════════════════════════ -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sales Report</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
   <!-- ============================================================
      PASTE THIS INTO THE <head> OF EVERY PAGE
      ============================================================ -->
@@ -29,1240 +70,654 @@
 <!-- ============================================================
      END OF SNIPPET
      ============================================================ -->
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      color: #333;
+    }
 
-<style>
+    h1 { text-align:center; margin-bottom:20px; color:#007BFF; }
 
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-}
+    .section {
+      background: #fff;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.08);
+    }
 
-body{
-  font-family:Arial,sans-serif;
-  background:#f4f6f9;
-  padding:15px;
-  color:#333;
-}
+    .top-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
 
-h1{
-  text-align:center;
-  margin-bottom:20px;
-  color:#007BFF;
-}
+    .btn { padding:10px 15px; border:none; border-radius:6px; cursor:pointer; font-size:14px; transition:0.3s; }
+    .btn:hover { opacity:0.9; }
+    .btn-backup  { background:#28a745; color:white; }
+    .btn-restore { background:#ffc107; }
+    .btn-pdf     { background:#007BFF; color:white; }
+    .btn-reset   { background:#dc3545; color:white; }
+    .btn-pay     { background:#28a745; color:white; }
+    .btn-back    { background:#007BFF; color:white; width:100%; margin-top:10px; }
 
-.section{
-  background:#fff;
-  padding:15px;
-  border-radius:10px;
-  margin-bottom:20px;
-  box-shadow:0 2px 5px rgba(0,0,0,0.08);
-}
+    .filters {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px,1fr));
+      gap: 10px;
+    }
 
-.top-actions{
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
-  justify-content:center;
-  margin-bottom:20px;
-}
+    input, select { width:100%; padding:10px; border:1px solid #ccc; border-radius:6px; }
 
-.btn{
-  padding:10px 15px;
-  border:none;
-  border-radius:6px;
-  cursor:pointer;
-  font-size:14px;
-  transition:0.3s;
-}
+    .table-container { overflow-x:auto; }
 
-.btn:hover{
-  opacity:0.9;
-}
+    table { width:100%; border-collapse:collapse; margin-top:10px; }
+    th, td { border:1px solid #ddd; padding:10px; text-align:center; font-size:14px; }
+    th { background:#007BFF; color:white; }
 
-.btn-backup{
-  background:#28a745;
-  color:white;
-}
+    .status-paid   { color:green; font-weight:bold; }
+    .status-unpaid { color:red;   font-weight:bold; }
 
-.btn-restore{
-  background:#ffc107;
-}
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px,1fr));
+      gap: 15px;
+    }
 
-.btn-pdf{
-  background:#007BFF;
-  color:white;
-}
+    .card { background:#f8f9fa; padding:15px; border-radius:8px; border-left:5px solid #007BFF; }
+    .card h3 { margin-bottom:10px; }
 
-.btn-reset{
-  background:#dc3545;
-  color:white;
-}
+    .daily-card { margin-top:10px; padding:10px; background:#eef5ff; border-radius:6px; }
 
-.btn-pay{
-  background:#28a745;
-  color:white;
-}
+    .no-data { text-align:center; padding:30px; color:#777; }
 
-.btn-back{
-  background:#007BFF;
-  color:white;
-  width:100%;
-  margin-top:10px;
-}
+    .summary-toggle {
+      margin-top:10px; padding:8px 12px;
+      border:none; border-radius:6px;
+      background:#007BFF; color:white;
+      cursor:pointer; font-size:14px;
+    }
+    .summary-toggle:hover { opacity:0.9; }
+    .hidden-summary { display:none; }
 
-.dashboard-btn{
-  position:fixed;
-  top:15px;
-  left:15px;
-  background:#007BFF;
-  color:white;
-  padding:10px 15px;
-  border-radius:6px;
-  text-decoration:none;
-}
+    /* ── Sidebar ── */
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      height: 100vh;
+      width: 64px;
+      background: #0f172a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 12px 0;
+      gap: 4px;
+      z-index: 1000;
+      transition: width 0.25s ease;
+      overflow: hidden;
+    }
 
-.filters{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-  gap:10px;
-}
+    .sidebar.active {
+      width: 220px;
+      align-items: flex-start;
+      padding: 16px 12px;
+    }
 
-input,
-select{
-  width:100%;
-  padding:10px;
-  border:1px solid #ccc;
-  border-radius:6px;
-}
+    .sidebar-logo {
+      width:36px; height:36px;
+      border-radius:8px; background:#1e293b;
+      display:flex; align-items:center; justify-content:center;
+      margin-bottom:8px; flex-shrink:0;
+    }
 
-.table-container{
-  overflow-x:auto;
-}
+    .sidebar.active .sidebar-logo {
+      width:100%; height:auto;
+      background:transparent; border-radius:0;
+      flex-direction:row; gap:10px;
+      padding:8px 4px; margin-bottom:4px;
+    }
 
-table{
-  width:100%;
-  border-collapse:collapse;
-  margin-top:10px;
-}
+    .sidebar-logo i { font-size:20px; color:#60a5fa; }
 
-th,
-td{
-  border:1px solid #ddd;
-  padding:10px;
-  text-align:center;
-  font-size:14px;
-}
+    .sidebar-logo-text {
+      display:none; font-size:15px; font-weight:500;
+      color:#f1f5f9; white-space:nowrap;
+    }
 
-th{
-  background:#007BFF;
-  color:white;
-}
+    .sidebar.active .sidebar-logo-text { display:block; }
 
-.status-paid{
-  color:green;
-  font-weight:bold;
-}
+    .sidebar-divider {
+      width:36px; height:0.5px;
+      background:#1e293b;
+      margin:4px 0 8px; flex-shrink:0;
+    }
 
-.status-unpaid{
-  color:red;
-  font-weight:bold;
-}
+    .sidebar.active .sidebar-divider {
+      width:calc(100% - 8px);
+      margin:4px 4px 8px;
+    }
 
-.summary-grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
-  gap:15px;
-}
+    .sidebar a {
+      width:36px; height:36px;
+      border-radius:8px;
+      display:flex; align-items:center; justify-content:center;
+      text-decoration:none; color:#94a3b8;
+      flex-shrink:0;
+      transition:background 0.15s ease, color 0.15s ease;
+      gap:10px;
+    }
 
-.card{
-  background:#f8f9fa;
-  padding:15px;
-  border-radius:8px;
-  border-left:5px solid #007BFF;
-}
+    .sidebar.active a {
+      width:100%; height:auto;
+      padding:10px 12px;
+      justify-content:flex-start;
+    }
 
-.card h3{
-  margin-bottom:10px;
-}
+    .sidebar a i { font-size:18px; flex-shrink:0; }
+    .sidebar.active a i { font-size:17px; }
 
-.daily-card{
-  margin-top:10px;
-  padding:10px;
-  background:#eef5ff;
-  border-radius:6px;
-}
+    .sidebar a .nav-label { display:none; font-size:14px; white-space:nowrap; }
+    .sidebar.active a .nav-label { display:block; }
 
-.no-data{
-  text-align:center;
-  padding:30px;
-  color:#777;
-}
+    .sidebar a:hover { background:#1e293b; color:#e2e8f0; }
+    .sidebar a.active-link { background:#1e3a5f; color:#60a5fa; }
+    .sidebar a.logout-link { color:#f87171; margin-top:auto; }
+    .sidebar a.logout-link:hover { background:#2d1a1a; }
 
-.summary-toggle{
-  margin-top:10px;
-  padding:8px 12px;
-  border:none;
-  border-radius:6px;
-  background:#007BFF;
-  color:white;
-  cursor:pointer;
-  font-size:14px;
-}
+    .sidebar-spacer { flex:1; }
 
-.summary-toggle:hover{
-  opacity:0.9;
-}
+    .toggle-btn {
+      position:fixed; top:14px; left:14px;
+      background:transparent; color:#60a5fa;
+      border:none; padding:8px;
+      cursor:pointer; border-radius:6px;
+      font-size:20px; z-index:1002;
+      transition:background 0.15s;
+    }
 
-.hidden-summary{
-  display:none;
-}
+    .toggle-btn:hover { background:#1e293b; }
 
-</style>
+    /* ── Main content ── */
+    .main-content {
+      margin-left: 64px;
+      padding: 15px;
+      transition: margin-left 0.25s ease;
+    }
+
+    .sidebar.active ~ .main-content { margin-left:220px; }
+  </style>
 </head>
-
 <body>
 
-<a href="#" class="dashboard-btn" onclick="openAdminDashboard(event)">
-🏠 Dashboard
-</a>
-
-<h1>📊 Sales Report</h1>
-
-<!-- ACTION BUTTONS -->
-<div class="top-actions">
-
-  <button class="btn btn-backup" onclick="backupData()">
-    🧾 Backup
-  </button>
-
-  <button class="btn btn-restore"
-    onclick="document.getElementById('restoreFile').click()">
-    🔁 Restore
-  </button>
-
-  <button class="btn btn-pdf" onclick="downloadPDF()">
-    📄 Download PDF
-  </button>
-
-  <button class="btn btn-reset" onclick="resetSystem()">
-    ⚠ Reset System
-  </button>
-
-  <input
-    type="file"
-    id="restoreFile"
-    accept=".json"
-    hidden
-    onchange="restoreData(event)"
-  >
-
-</div>
-
-<!-- FILTERS -->
-<div class="section">
-
-  <div class="filters">
-
-    <input
-      type="text"
-      id="searchInput"
-      placeholder="Search product/customer..."
-    >
-
-    <select id="paymentFilter">
-      <option value="">All Payments</option>
-      <option value="Cash">Cash</option>
-      <option value="Mpesa">Mpesa</option>
-      <option value="Card">Card</option>
-      <option value="Debt">Debt</option>
-    </select>
-
-    <select id="statusFilter">
-      <option value="">All Status</option>
-      <option value="PAID">PAID</option>
-      <option value="PARTIAL">PARTIAL</option>
-    </select>
-
-    <input type="date" id="dateFilter">
-
-  </div>
-
-</div>
-
-<!-- SUMMARY -->
-<div class="section">
-
-  <div class="summary-grid">
-
-    <div class="card">
-      <h3>Total Sales</h3>
-      <p id="totalSales">Ksh 0.00</p>
-    </div>
-
-    <div class="card">
-      <h3>Total Paid</h3>
-      <p id="totalPaid">Ksh 0.00</p>
-    </div>
-
-    <div class="card">
-      <h3>Outstanding Debt</h3>
-      <p id="totalDebt">Ksh 0.00</p>
-    </div>
-
-    <div class="card">
-      <h3>Total Transactions</h3>
-      <p id="totalTransactions">0</p>
-    </div>
-
-  </div>
-
-</div>
-
-<!-- DAILY SUMMARY -->
-<div class="section">
-
-  <h2>📅 Daily Summary</h2>
-
-  <div id="dailySummary"></div>
-
-</div>
-
-<!-- SALES TABLE -->
-<div class="section">
-
-  <div class="table-container">
-
-    <table>
-
-      <thead>
-
-        <tr>
-
-          <th>Receipt</th>
-          <th>Product</th>
-          <th>Customer</th>
-          <th>Qty</th>
-          <th>Total</th>
-          <th>Paid</th>
-          <th>Balance</th>
-          <th>Payment</th>
-          <th>Status</th>
-          <th>Date</th>
-          <th>Action</th>
-
-        </tr>
-
-      </thead>
-
-      <tbody id="salesTableBody"></tbody>
-
-    </table>
-
-  </div>
-
-</div>
-
-<button class="btn btn-back" onclick="goBack()">
-⬅ Back
+<!-- Toggle Button -->
+<button class="toggle-btn" onclick="toggleSidebar()" aria-label="Toggle menu">
+  <i class="ti ti-menu-2"></i>
 </button>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <i class="ti ti-package" aria-hidden="true"></i>
+    <span class="sidebar-logo-text">Inventra</span>
+  </div>
+  <div class="sidebar-divider"></div>
+  <div id="sidebarLinks"></div>
+  <div class="sidebar-spacer"></div>
+  <div class="sidebar-divider"></div>
+  <a href="Home Stock.html" class="logout-link">
+    <i class="ti ti-logout" aria-hidden="true"></i>
+    <span class="nav-label">Logout</span>
+  </a>
+</div>
+
+<!-- Main Content -->
+<div class="main-content">
+
+  <h1>📊 Sales Report</h1>
+
+  <!-- ACTION BUTTONS -->
+  <div class="top-actions">
+    <button class="btn btn-backup" onclick="backupData()">🧾 Backup</button>
+    <button class="btn btn-restore" onclick="document.getElementById('restoreFile').click()">🔁 Restore</button>
+    <button class="btn btn-pdf"    onclick="downloadPDF()">📄 Download PDF</button>
+    <button class="btn btn-reset"  onclick="resetSystem()">⚠ Reset System</button>
+    <input type="file" id="restoreFile" accept=".json" hidden onchange="restoreData(event)">
+  </div>
+
+  <!-- FILTERS -->
+  <div class="section">
+    <div class="filters">
+      <input type="text" id="searchInput" placeholder="Search product/customer...">
+      <select id="paymentFilter">
+        <option value="">All Payments</option>
+        <option value="Cash">Cash</option>
+        <option value="Mpesa">Mpesa</option>
+        <option value="Card">Card</option>
+        <option value="Debt">Debt</option>
+      </select>
+      <select id="statusFilter">
+        <option value="">All Status</option>
+        <option value="PAID">PAID</option>
+        <option value="PARTIAL">PARTIAL</option>
+      </select>
+      <input type="date" id="dateFilter">
+    </div>
+  </div>
+
+  <!-- SUMMARY -->
+  <div class="section">
+    <div class="summary-grid">
+      <div class="card"><h3>Total Sales</h3><p id="totalSales">Ksh 0.00</p></div>
+      <div class="card"><h3>Total Paid</h3><p id="totalPaid">Ksh 0.00</p></div>
+      <div class="card"><h3>Outstanding Debt</h3><p id="totalDebt">Ksh 0.00</p></div>
+      <div class="card"><h3>Total Transactions</h3><p id="totalTransactions">0</p></div>
+    </div>
+  </div>
+
+  <!-- DAILY SUMMARY -->
+  <div class="section">
+    <h2>📅 Daily Summary</h2>
+    <div id="dailySummary"></div>
+  </div>
+
+  <!-- SALES TABLE -->
+  <div class="section">
+    <div class="table-container">
+      <table>
+        <thead>
+          <tr>
+            <th>Receipt</th><th>Product</th><th>Customer</th>
+            <th>Qty</th><th>Total</th><th>Paid</th><th>Balance</th>
+            <th>Payment</th><th>Status</th><th>Date</th><th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="salesTableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <button class="btn btn-back" onclick="goBack()">⬅ Back</button>
+
+</div>
+<!-- End .main-content -->
+
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-  const supabaseUrl = "https://quhorqxtzhpuxeujgxfw.supabase.co";
+
+// ── Supabase ──
+const supabaseUrl = "https://quhorqxtzhpuxeujgxfw.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1aG9ycXh0emhwdXhldWpneGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNTI2NzgsImV4cCI6MjA5NTYyODY3OH0._bldtcFHB59obsAsxC7ctKn-EqoQqKnwLTXowo2ppF8";
+const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-const supabaseClient = window.supabase.createClient(
-  supabaseUrl,
-  supabaseKey
-);
-async function loadSalesFromSupabase() {
-
-  const { data, error } =
-    await supabaseClient
-      .from("sales")
-      .select("*")
-      .order("date", { ascending: false });
-
-  if (error) {
-
-    console.error(
-      "Error loading sales:",
-      error
-    );
-
-    // OFFLINE FALLBACK
-    allSales =
-      JSON.parse(
-        localStorage.getItem("allSales")
-      ) || [];
-
-    renderSales();
-    updateSummary();
-
-    return;
-  }
-
-  allSales = data || [];
-
-  // Cache locally for offline use
-  localStorage.setItem(
-    "allSales",
-    JSON.stringify(allSales)
-  );
-
-  renderSales();
-  updateSummary();
-
-  console.log(
-    "✅ Sales loaded from Supabase"
-  );
-}
 let allSales = [];
 
-function formatMoney(amount){
+// ── Sidebar ──
+const ADMIN_LINKS = [
+  { href:"admin_dashboard.html", icon:"ti-home",          label:"Dashboard"     },
+  { href:"Stock.html",           icon:"ti-box",           label:"Stock"         },
+  { href:"Sell.html",            icon:"ti-shopping-cart", label:"Sell"          },
+  { href:"debts.html",           icon:"ti-coin",          label:"Debts"         },
+  { href:"sales_report.html",    icon:"ti-chart-bar",     label:"Reports"       },
+  { href:"manage_user.html",     icon:"ti-users",         label:"Users"         },
+];
 
-  return new Intl.NumberFormat('en-KE', {
-    style:'currency',
-    currency:'KES'
-  }).format(amount || 0);
+const USER_LINKS = [
+  { href:"user_dashboard.html",  icon:"ti-home",          label:"Dashboard"     },
+  { href:"user_stock.html",      icon:"ti-box",           label:"View Stock"    },
+  { href:"Sell.html",            icon:"ti-shopping-cart", label:"Sell Products" },
+  { href:"sales_report.html",    icon:"ti-chart-bar",     label:"Sales Reports" },
+  { href:"debts.html",           icon:"ti-coin",          label:"Debts"         },
+];
 
+function buildSidebar() {
+  const user  = JSON.parse(localStorage.getItem("loggedInUser"));
+  const links = user?.role === "Admin" ? ADMIN_LINKS : USER_LINKS;
+  const currentPage = window.location.pathname.split("/").pop();
+
+  document.getElementById("sidebarLinks").innerHTML = links.map(l => `
+    <a href="${l.href}" ${l.href === currentPage ? 'class="active-link"' : ''}>
+      <i class="ti ${l.icon}" aria-hidden="true"></i>
+      <span class="nav-label">${l.label}</span>
+    </a>
+  `).join("");
 }
 
-function renderSales(data = allSales){
+function toggleSidebar() {
+  document.getElementById("sidebar").classList.toggle("active");
+}
 
-  const tbody =
-    document.getElementById("salesTableBody");
+// ── Format ──
+function formatMoney(amount) {
+  return new Intl.NumberFormat('en-KE', { style:'currency', currency:'KES' }).format(amount || 0);
+}
 
+// ── Load Sales ──
+async function loadSalesFromSupabase() {
+  const { data, error } = await supabaseClient
+    .from("sales").select("*").order("date", { ascending: false });
+
+  if (error) {
+    console.error("Error loading sales:", error);
+    allSales = JSON.parse(localStorage.getItem("allSales")) || [];
+  } else {
+    allSales = data || [];
+    localStorage.setItem("allSales", JSON.stringify(allSales));
+    console.log("✅ Sales loaded from Supabase");
+  }
+  renderSales();
+  updateSummary();
+}
+
+// ── Render Sales ──
+function renderSales(data = allSales) {
+  const tbody = document.getElementById("salesTableBody");
   tbody.innerHTML = "";
 
-  if(!data.length){
-
-    tbody.innerHTML = `
-      <tr>
-        <td colspan="11" class="no-data">
-          No sales found.
-        </td>
-      </tr>
-    `;
-
+  if (!data.length) {
+    tbody.innerHTML = `<tr><td colspan="11" class="no-data">No sales found.</td></tr>`;
     return;
-
   }
 
-  data.forEach((sale,index) => {
-
-    const statusClass =
-      sale.status === "PAID"
-      ? "status-paid"
-      : "status-unpaid";
-
+  data.forEach((sale, index) => {
+    const statusClass = sale.status === "PAID" ? "status-paid" : "status-unpaid";
     tbody.innerHTML += `
-
       <tr>
-
         <td>${sale.receiptNo || "-"}</td>
-
         <td>${sale.product}</td>
-
-        <td>
-  ${
-    sale.debtor?.trim()
-    || sale.customer?.trim()
-    || "N/A"
-  }
-</td>
-
+        <td>${sale.debtor?.trim() || sale.customer?.trim() || "N/A"}</td>
         <td>${sale.qty}</td>
-
         <td>${formatMoney(sale.total)}</td>
-
         <td>${formatMoney(sale.amountPaid)}</td>
-
         <td>${formatMoney(sale.balance)}</td>
-
         <td>${sale.payment}</td>
-
-        <td class="${statusClass}">
-          ${sale.status}
-        </td>
-
-        <td>
-          ${new Date(sale.date).toLocaleString()}
-        </td>
-
-        <td>
-
-          ${
-            sale.balance > 0
-
-            ?
-
-            `<button
-              class="btn btn-pay"
-              onclick="markAsPaid(${index})">
-              Mark Paid
-            </button>`
-
-            :
-
-            "-"
-
-          }
-
-        </td>
-
-      </tr>
-
-    `;
-
+        <td class="${statusClass}">${sale.status}</td>
+        <td>${new Date(sale.date).toLocaleString()}</td>
+        <td>${sale.balance > 0
+          ? `<button class="btn btn-pay" onclick="markAsPaid(${index})">Mark Paid</button>`
+          : "-"}</td>
+      </tr>`;
   });
-
 }
 
-function updateSummary(data = allSales){
-
-  let totalSales = 0;
-  let totalPaid = 0;
-  let totalDebt = 0;
-
+// ── Summary ──
+function updateSummary(data = allSales) {
+  let totalSales = 0, totalPaid = 0, totalDebt = 0;
   const daily = {};
 
   data.forEach(sale => {
-
     totalSales += parseFloat(sale.total) || 0;
+    totalPaid  += parseFloat(sale.amountPaid) || 0;
+    totalDebt  += parseFloat(sale.balance) || 0;
 
-    totalPaid += parseFloat(sale.amountPaid) || 0;
-
-    totalDebt += parseFloat(sale.balance) || 0;
-
-    const day =
-      new Date(sale.date)
-      .toISOString()
-      .split("T")[0];
-
-    if(!daily[day]){
-
-      daily[day] = {
-        sales:0,
-        paid:0,
-        debt:0
-      };
-
-    }
-
+    const day = new Date(sale.date).toISOString().split("T")[0];
+    if (!daily[day]) daily[day] = { sales:0, paid:0, debt:0 };
     daily[day].sales += parseFloat(sale.total) || 0;
-
-    daily[day].paid += parseFloat(sale.amountPaid) || 0;
-
-    daily[day].debt += parseFloat(sale.balance) || 0;
-
+    daily[day].paid  += parseFloat(sale.amountPaid) || 0;
+    daily[day].debt  += parseFloat(sale.balance) || 0;
   });
 
-  document.getElementById("totalSales")
-  .innerText = formatMoney(totalSales);
+  document.getElementById("totalSales").innerText        = formatMoney(totalSales);
+  document.getElementById("totalPaid").innerText         = formatMoney(totalPaid);
+  document.getElementById("totalDebt").innerText         = formatMoney(totalDebt);
+  document.getElementById("totalTransactions").innerText = data.length;
 
-  document.getElementById("totalPaid")
-  .innerText = formatMoney(totalPaid);
+  const dailyContainer = document.getElementById("dailySummary");
+  dailyContainer.innerHTML = "";
+  const sortedDays = Object.keys(daily).sort((a,b) => new Date(b)-new Date(a));
 
-  document.getElementById("totalDebt")
-  .innerText = formatMoney(totalDebt);
-
-  document.getElementById("totalTransactions")
-  .innerText = data.length;
-
-  // DAILY SUMMARY
-
-  // DAILY SUMMARY
-
-const dailyContainer =
-  document.getElementById("dailySummary");
-
-dailyContainer.innerHTML = "";
-
-const sortedDays = Object.keys(daily)
-.sort((a,b) => new Date(b)-new Date(a));
-
-if(sortedDays.length){
-
-  // Show latest/current day only
-  const latestDay = sortedDays[0];
-
-  dailyContainer.innerHTML += `
-
-    <div class="daily-card">
-
-      <strong>${latestDay} (Current)</strong>
-
-      <p>
-        Sales:
-        ${formatMoney(daily[latestDay].sales)}
-      </p>
-
-      <p>
-        Paid:
-        ${formatMoney(daily[latestDay].paid)}
-      </p>
-
-      <p>
-        Debt:
-        ${formatMoney(daily[latestDay].debt)}
-      </p>
-
-    </div>
-
-  `;
-
-  // Button to expand all reports
-  if(sortedDays.length > 1){
-
+  if (sortedDays.length) {
+    const latestDay = sortedDays[0];
     dailyContainer.innerHTML += `
+      <div class="daily-card">
+        <strong>${latestDay} (Current)</strong>
+        <p>Sales: ${formatMoney(daily[latestDay].sales)}</p>
+        <p>Paid:  ${formatMoney(daily[latestDay].paid)}</p>
+        <p>Debt:  ${formatMoney(daily[latestDay].debt)}</p>
+      </div>`;
 
-      <button
-        class="summary-toggle"
-        onclick="toggleDailyReports()"
-        id="toggleBtn"
-      >
-        + Show All Reports
-      </button>
+    if (sortedDays.length > 1) {
+      dailyContainer.innerHTML += `
+        <button class="summary-toggle" onclick="toggleDailyReports()" id="toggleBtn">+ Show All Reports</button>
+        <div id="allDailyReports" class="hidden-summary"></div>`;
 
-      <div id="allDailyReports" class="hidden-summary"></div>
-
-    `;
-
-    const allReports =
-      document.getElementById("allDailyReports");
-
-    sortedDays.slice(1).forEach(day => {
-
-      allReports.innerHTML += `
-
-        <div class="daily-card">
-
-          <strong>${day}</strong>
-
-          <p>
-            Sales:
-            ${formatMoney(daily[day].sales)}
-          </p>
-
-          <p>
-            Paid:
-            ${formatMoney(daily[day].paid)}
-          </p>
-
-          <p>
-            Debt:
-            ${formatMoney(daily[day].debt)}
-          </p>
-
-        </div>
-
-      `;
-
-    });
-
+      const allReports = document.getElementById("allDailyReports");
+      sortedDays.slice(1).forEach(day => {
+        allReports.innerHTML += `
+          <div class="daily-card">
+            <strong>${day}</strong>
+            <p>Sales: ${formatMoney(daily[day].sales)}</p>
+            <p>Paid:  ${formatMoney(daily[day].paid)}</p>
+            <p>Debt:  ${formatMoney(daily[day].debt)}</p>
+          </div>`;
+      });
+    }
   }
-
-}
-}
-function toggleDailyReports(){
-
-  const reports =
-    document.getElementById("allDailyReports");
-
-  const btn =
-    document.getElementById("toggleBtn");
-
-  if(reports.classList.contains("hidden-summary")){
-
-    reports.classList.remove("hidden-summary");
-
-    btn.innerHTML = "− Hide Reports";
-
-  } else {
-
-    reports.classList.add("hidden-summary");
-
-    btn.innerHTML = "+ Show All Reports";
-
-  }
-
 }
 
-function filterSales(){
+function toggleDailyReports() {
+  const reports = document.getElementById("allDailyReports");
+  const btn     = document.getElementById("toggleBtn");
+  const hidden  = reports.classList.toggle("hidden-summary");
+  btn.innerHTML = hidden ? "+ Show All Reports" : "− Hide Reports";
+}
 
-  const search =
-    document.getElementById("searchInput")
-    .value
-    .toLowerCase();
-
-  const payment =
-    document.getElementById("paymentFilter")
-    .value;
-
-  const status =
-    document.getElementById("statusFilter")
-    .value;
-
-  const date =
-    document.getElementById("dateFilter")
-    .value;
+// ── Filter ──
+function filterSales() {
+  const search  = document.getElementById("searchInput").value.toLowerCase();
+  const payment = document.getElementById("paymentFilter").value;
+  const status  = document.getElementById("statusFilter").value;
+  const date    = document.getElementById("dateFilter").value;
 
   const filtered = allSales.filter(sale => {
-
-    const matchesSearch =
-
-      sale.product?.toLowerCase().includes(search)
-
-      ||
-
-      sale.customer?.toLowerCase().includes(search);
-
-    const matchesPayment =
-      !payment || sale.payment === payment;
-
-    const matchesStatus =
-      !status || sale.status === status;
-
-    const matchesDate =
-      !date ||
-      new Date(sale.date)
-      .toISOString()
-      .split("T")[0] === date;
-
-    return (
-      matchesSearch &&
-      matchesPayment &&
-      matchesStatus &&
-      matchesDate
-    );
-
+    const matchesSearch  = sale.product?.toLowerCase().includes(search) || sale.customer?.toLowerCase().includes(search);
+    const matchesPayment = !payment || sale.payment === payment;
+    const matchesStatus  = !status  || sale.status  === status;
+    const matchesDate    = !date    || new Date(sale.date).toISOString().split("T")[0] === date;
+    return matchesSearch && matchesPayment && matchesStatus && matchesDate;
   });
 
   renderSales(filtered);
-
   updateSummary(filtered);
-
 }
 
-document.getElementById("searchInput")
-.addEventListener("input", filterSales);
+document.getElementById("searchInput").addEventListener("input",  filterSales);
+document.getElementById("paymentFilter").addEventListener("change", filterSales);
+document.getElementById("statusFilter").addEventListener("change",  filterSales);
+document.getElementById("dateFilter").addEventListener("change",    filterSales);
 
-document.getElementById("paymentFilter")
-.addEventListener("change", filterSales);
-
-document.getElementById("statusFilter")
-.addEventListener("change", filterSales);
-
-document.getElementById("dateFilter")
-.addEventListener("change", filterSales);
-
-async function markAsPaid(index){
-
-  // Re-derive the filtered list the same way renderSales does,
-  // so the button index always maps to the right row
-  const search =
-    document.getElementById("searchInput").value.toLowerCase();
-  const payment =
-    document.getElementById("paymentFilter").value;
-  const status =
-    document.getElementById("statusFilter").value;
-  const date =
-    document.getElementById("dateFilter").value;
+// ── Mark as Paid ──
+async function markAsPaid(index) {
+  const search  = document.getElementById("searchInput").value.toLowerCase();
+  const payment = document.getElementById("paymentFilter").value;
+  const status  = document.getElementById("statusFilter").value;
+  const date    = document.getElementById("dateFilter").value;
 
   const filtered = allSales.filter(sale => {
-    const matchesSearch =
-      sale.product?.toLowerCase().includes(search) ||
-      sale.customer?.toLowerCase().includes(search);
+    const matchesSearch  = sale.product?.toLowerCase().includes(search) || sale.customer?.toLowerCase().includes(search);
     const matchesPayment = !payment || sale.payment === payment;
     const matchesStatus  = !status  || sale.status  === status;
-    const matchesDate    = !date    ||
-      new Date(sale.date).toISOString().split("T")[0] === date;
+    const matchesDate    = !date    || new Date(sale.date).toISOString().split("T")[0] === date;
     return matchesSearch && matchesPayment && matchesStatus && matchesDate;
   });
 
   const sale = filtered[index];
-  if(!sale) return;
+  if (!sale) return;
 
-  // Find the real record in allSales
   const originalIndex = allSales.findIndex(s =>
-    s.product === sale.product &&
-    s.date    === sale.date &&
-    s.debtor  === sale.debtor
+    s.product === sale.product && s.date === sale.date && s.debtor === sale.debtor
   );
-  if(originalIndex === -1) return;
+  if (originalIndex === -1) return;
 
-  const currentSale = allSales[originalIndex];
-
+  const currentSale      = allSales[originalIndex];
   const remainingBalance = parseFloat(currentSale.balance) || 0;
+  if (remainingBalance <= 0) { alert("No outstanding balance."); return; }
 
-  if(remainingBalance <= 0){
-    alert("No outstanding balance.");
-    return;
-  }
-
-  const paymentInput = prompt(
-    `Outstanding balance is Ksh ${remainingBalance}\n\nEnter amount paid:`
-  );
-
-  if(paymentInput === null) return;
+  const paymentInput = prompt(`Outstanding balance is Ksh ${remainingBalance}\n\nEnter amount paid:`);
+  if (paymentInput === null) return;
 
   const paymentAmount = parseFloat(paymentInput);
-
-  if(isNaN(paymentAmount) || paymentAmount <= 0){
-    alert("Enter a valid payment amount.");
-    return;
-  }
-
-  if(paymentAmount > remainingBalance){
-    alert("Payment cannot exceed balance.");
-    return;
-  }
+  if (isNaN(paymentAmount) || paymentAmount <= 0) { alert("Enter a valid payment amount."); return; }
+  if (paymentAmount > remainingBalance)            { alert("Payment cannot exceed balance."); return; }
 
   const today    = new Date().toISOString().split("T")[0];
   const saleDate = new Date(currentSale.date).toISOString().split("T")[0];
 
-  // Update the record
-  currentSale.amountPaid =
-    (parseFloat(currentSale.amountPaid) || 0) + paymentAmount;
+  currentSale.amountPaid    = (parseFloat(currentSale.amountPaid) || 0) + paymentAmount;
+  currentSale.balance       = remainingBalance - paymentAmount;
+  currentSale.clearedAmount = (parseFloat(currentSale.clearedAmount) || 0) + paymentAmount;
+  currentSale.clearedDate   = new Date().toISOString();
+  currentSale.status        = currentSale.balance <= 0 ? "PAID" : "PARTIAL";
+  if (currentSale.balance <= 0) currentSale.balance = 0;
 
-  currentSale.balance =
-    remainingBalance - paymentAmount;
-
-  currentSale.clearedAmount =
-    (parseFloat(currentSale.clearedAmount) || 0) + paymentAmount;
-
-  currentSale.clearedDate = new Date().toISOString();
-
-  if(currentSale.balance <= 0){
-    currentSale.balance = 0;
-    currentSale.status  = "PAID";
-  } else {
-    currentSale.status = "PARTIAL";
-  }
-
-  // Add a separate clearance record if payment is on a different day
-  if(today !== saleDate){
-
+  if (today !== saleDate) {
     const debtPayment = {
-      receiptNo:  crypto.randomUUID(),
-      originalReceiptNo: currentSale.receiptNo,
-      product:    currentSale.product,
-      customer:   currentSale.customer || currentSale.debtor || "N/A",
-      debtor:     currentSale.debtor   || currentSale.customer || "N/A",
-      qty:        0,
-      total:      paymentAmount,
-      amountPaid: paymentAmount,
-      balance:    0,
-      payment:    "Debt Clearance",
-      status:     "PAID",
-      date:       new Date().toISOString(),
-      clearedDate: new Date().toISOString()
+      receiptNo: crypto.randomUUID(), originalReceiptNo: currentSale.receiptNo,
+      product:   currentSale.product,
+      customer:  currentSale.customer || currentSale.debtor || "N/A",
+      debtor:    currentSale.debtor   || currentSale.customer || "N/A",
+      qty: 0, total: paymentAmount, amountPaid: paymentAmount, balance: 0,
+      payment: "Debt Clearance", status: "PAID",
+      date: new Date().toISOString(), clearedDate: new Date().toISOString()
     };
-
     allSales.unshift(debtPayment);
-
-    // Sync the new clearance record to Supabase
-    if(navigator.onLine){
-      await supabaseClient
-        .from("sales")
-        .insert([debtPayment]);
-    }
+    if (navigator.onLine) await supabaseClient.from("sales").insert([debtPayment]);
   }
 
-  // Save locally
   localStorage.setItem("allSales", JSON.stringify(allSales));
 
-  // Sync the updated original sale to Supabase
-  if(navigator.onLine){
-
-    const { error } =
-      await supabaseClient
-        .from("sales")
-        .upsert(
-          [currentSale],
-          { onConflict: "receiptNo" }
-        );
-
-    if(error){
+  if (navigator.onLine) {
+    const { error } = await supabaseClient.from("sales").upsert([currentSale], { onConflict: "receiptNo" });
+    if (error) {
       console.error("Supabase update failed:", error);
-      // Queue for retry when back online
-      const pending =
-        JSON.parse(localStorage.getItem("pendingSales")) || [];
+      const pending = JSON.parse(localStorage.getItem("pendingSales")) || [];
       pending.push(currentSale);
       localStorage.setItem("pendingSales", JSON.stringify(pending));
     } else {
-      console.log("✅ Debt payment synced to Supabase");
+      console.log("✅ Debt payment synced");
     }
-
   } else {
-
-    // Offline — queue for later
-    const pending =
-      JSON.parse(localStorage.getItem("pendingSales")) || [];
+    const pending = JSON.parse(localStorage.getItem("pendingSales")) || [];
     pending.push(currentSale);
     localStorage.setItem("pendingSales", JSON.stringify(pending));
-
   }
 
   renderSales();
   updateSummary();
-
-  if(currentSale.balance > 0){
-    alert(`✅ Partial payment recorded.\nRemaining balance: Ksh ${currentSale.balance}`);
-  } else {
-    alert("✅ Debt fully cleared!");
-  }
-
-}
-
-function downloadPDF(){
-
-  const element = document.body;
-
-  const opt = {
-
-    margin:0.5,
-
-    filename:
-      `Sales_Report_${
-        new Date()
-        .toISOString()
-        .split("T")[0]
-      }.pdf`,
-
-    image:{
-      type:'jpeg',
-      quality:0.98
-    },
-
-    html2canvas:{
-      scale:2
-    },
-
-    jsPDF:{
-      unit:'in',
-      format:'letter',
-      orientation:'landscape'
-    }
-
-  };
-
-  html2pdf()
-  .set(opt)
-  .from(element)
-  .save();
-
-}
-
-function backupData(){
-
-  const blob = new Blob(
-    [JSON.stringify(allSales)],
-    {type:"application/json"}
+  alert(currentSale.balance > 0
+    ? `✅ Partial payment recorded.\nRemaining balance: Ksh ${currentSale.balance}`
+    : "✅ Debt fully cleared!"
   );
+}
 
+// ── PDF ──
+function downloadPDF() {
+  html2pdf().set({
+    margin: 0.5,
+    filename: `Sales_Report_${new Date().toISOString().split("T")[0]}.pdf`,
+    image: { type:'jpeg', quality:0.98 },
+    html2canvas: { scale:2 },
+    jsPDF: { unit:'in', format:'letter', orientation:'landscape' }
+  }).from(document.body).save();
+}
+
+// ── Backup / Restore / Reset ──
+function backupData() {
+  const blob = new Blob([JSON.stringify(allSales)], { type:"application/json" });
   const a = document.createElement("a");
-
   a.href = URL.createObjectURL(blob);
-
-  a.download =
-    `sales_backup_${
-      new Date()
-      .toISOString()
-      .split("T")[0]
-    }.json`;
-
+  a.download = `sales_backup_${new Date().toISOString().split("T")[0]}.json`;
   a.click();
-
 }
 
-function restoreData(event){
-
+function restoreData(event) {
   const file = event.target.files[0];
-
-  if(!file) return;
-
+  if (!file) return;
   const reader = new FileReader();
-
   reader.onload = e => {
-
-    try{
-
-      const restored =
-        JSON.parse(e.target.result);
-
-      if(Array.isArray(restored)){
-
-        localStorage.setItem(
-          "allSales",
-          JSON.stringify(restored)
-        );
-
+    try {
+      const restored = JSON.parse(e.target.result);
+      if (Array.isArray(restored)) {
+        localStorage.setItem("allSales", JSON.stringify(restored));
         allSales = restored.reverse();
-
-        renderSales();
-
-        updateSummary();
-
+        renderSales(); updateSummary();
         alert("✅ Restored successfully!");
-
       }
-
-    } catch {
-
-      alert("❌ Invalid backup file.");
-
-    }
-
+    } catch { alert("❌ Invalid backup file."); }
   };
-
   reader.readAsText(file);
-
 }
 
-function resetSystem(){
-
-  const confirmReset =
-    confirm("Delete ALL system data?");
-
-  if(!confirmReset) return;
-
-  const finalConfirm =
-    prompt("Type DELETE to continue:");
-
-  if(finalConfirm !== "DELETE"){
-
-    alert("Reset cancelled.");
-
-    return;
-
-  }
-
+function resetSystem() {
+  if (!confirm("Delete ALL system data?")) return;
+  if (prompt("Type DELETE to continue:") !== "DELETE") { alert("Reset cancelled."); return; }
   localStorage.removeItem("products");
-
   localStorage.removeItem("allSales");
-
   localStorage.removeItem("sellIndices");
-
   alert("✅ System reset successful!");
-
   window.location.href = "Home Stock.html";
 }
 
-
-
-function goBack(){
-
-  const user =
-    JSON.parse(localStorage.getItem("loggedInUser"));
-
-  if(user?.role === "Admin"){
-
-    window.location.href = "Stock.html";
-
-  } else {
-
-    window.location.href = "user_stock.html";
-
-  }
-
+// ── Go Back ──
+function goBack() {
+  const user = JSON.parse(localStorage.getItem("loggedInUser"));
+  window.location.href = user?.role === "Admin" ? "Stock.html" : "user_stock.html";
 }
 
-function openAdminDashboard(e) {
-  e.preventDefault();
-
-  // Get logged in user data
-  const userData = JSON.parse(localStorage.getItem("loggedInUser"));
-
-  // Check role and redirect
-  if (userData?.role === "User") {
-
-    window.location.href = "user_dashboard.html";
-
-  } else if (userData?.role === "Admin") {
-
-    window.location.href = "admin_dashboard.html";
-
-  } else {
-
-    alert("Session expired. Please login again.");
-
-    window.location.href = "login.html";
-
-  }
-}
-
-
+// ── Sync ──
 function queueSaleForSync(sale) {
-  const pending =
-    JSON.parse(localStorage.getItem("pendingSales")) || [];
-
+  const pending = JSON.parse(localStorage.getItem("pendingSales")) || [];
   pending.push(sale);
-
-  localStorage.setItem(
-    "pendingSales",
-    JSON.stringify(pending)
-  );
+  localStorage.setItem("pendingSales", JSON.stringify(pending));
 }
 
-
-window.addEventListener(
-  "online",
-  syncPendingSales
-);
-
-document.addEventListener(
-  "DOMContentLoaded",
-  async () => {
-
-    await loadSalesFromSupabase();
-
-    if (navigator.onLine) {
-
-      await syncAllLocalSales();
-
-      await syncPendingSales();
-
-      await loadSalesFromSupabase();
-
-    }
-
-  }
-);
-
-  
 async function syncPendingSales() {
-
-  const pending =
-    JSON.parse(localStorage.getItem("pendingSales")) || [];
-
+  const pending = JSON.parse(localStorage.getItem("pendingSales")) || [];
   if (!pending.length) return;
-
-  // REMOVE duplicates BEFORE sending
-  const unique = [];
   const seen = new Set();
-
-  for (const item of pending) {
-    if (seen.has(item.receiptNo)) continue;
-    seen.add(item.receiptNo);
-    unique.push(item);
-  }
-
-  const { error } =
-    await supabaseClient
-      .from("sales")
-      .upsert(unique, { onConflict: "receiptNo" });
-
-  if (error) {
-    console.error("Sales Sync Error:", error);
-    return;
-  }
-
-  localStorage.removeItem("pendingSales");
-
-  console.log("✅ Sales synced successfully");
+  const unique = pending.filter(item => { if (seen.has(item.receiptNo)) return false; seen.add(item.receiptNo); return true; });
+  const { error } = await supabaseClient.from("sales").upsert(unique, { onConflict:"receiptNo" });
+  if (error) console.error("Sales Sync Error:", error);
+  else { localStorage.removeItem("pendingSales"); console.log("✅ Sales synced"); }
 }
 
 async function syncAllLocalSales() {
-
-  let sales =
-    JSON.parse(localStorage.getItem("allSales")) || [];
-
+  let sales = JSON.parse(localStorage.getItem("allSales")) || [];
   if (!sales.length) return;
-
-  // ✅ REMOVE duplicates
   const seen = new Set();
-  sales = sales.filter(item => {
-    if (seen.has(item.receiptNo)) return false;
-    seen.add(item.receiptNo);
-    return true;
-  });
-
-  const { error } =
-    await supabaseClient
-      .from("sales")
-      .upsert(sales, { onConflict: "receiptNo" });
-
-  if (error) {
-    console.error("Full sync error:", error);
-  } else {
-    console.log("✅ Existing sales synced");
-  }
+  sales = sales.filter(item => { if (seen.has(item.receiptNo)) return false; seen.add(item.receiptNo); return true; });
+  const { error } = await supabaseClient.from("sales").upsert(sales, { onConflict:"receiptNo" });
+  if (error) console.error("Full sync error:", error);
+  else console.log("✅ Existing sales synced");
 }
-document.addEventListener(
-  "DOMContentLoaded",
-  async () => {
 
-    await loadSalesFromSupabase();
-
-    if (navigator.onLine) {
-
-      await syncAllLocalSales();
-
-      await syncPendingSales();
-
-      await loadSalesFromSupabase();
-
-    }
-
-  }
-);
-async function syncDebtsToSupabase() {
-  const itemsPayload = cartItems.map(item => ({
-  receiptNo,
-  product: item.product,
-  qty: item.qty,
-  price: item.price,
-  total: item.qty * item.price
-}));
-
-await supabase.from("sale_items").insert(itemsPayload);
-
-  const pending =
-    JSON.parse(localStorage.getItem("pendingDebtsSync")) || [];
-
-  if (!pending.length) return;
-
-  const { error } =
-    await supabaseClient
-      .from("debts")
-      .upsert(pending, { onConflict: "receiptNo" });
-
-  if (error) {
-    console.error("Debt sync error:", error);
-    return;
-  }
-
-  localStorage.removeItem("pendingDebtsSync");
-
-  console.log("✅ Debts synced");
-}
-function dedupeByReceiptNo(list) {
-  const seen = new Set();
-  return list.filter(item => {
-    if (seen.has(item.receiptNo)) return false;
-    seen.add(item.receiptNo);
-    return true;
-  });
-}
+// ── Real-time ──
 supabaseClient
   .channel("sales-changes")
-  .on(
-    "postgres_changes",
-    {
-      event: "*",
-      schema: "public",
-      table: "sales"
-    },
-    () => {
-      loadSalesFromSupabase();
-    }
-  )
+  .on("postgres_changes", { event:"*", schema:"public", table:"sales" }, () => loadSalesFromSupabase())
   .subscribe();
-</script>
 
+// ── Init ──
+document.addEventListener("DOMContentLoaded", async () => {
+  buildSidebar();
+  await loadSalesFromSupabase();
+  if (navigator.onLine) {
+    await syncAllLocalSales();
+    await syncPendingSales();
+    await loadSalesFromSupabase();
+  }
+});
+
+window.addEventListener("online", async () => {
+  await syncAllLocalSales();
+  await syncPendingSales();
+  await loadSalesFromSupabase();
+});
+
+</script>
 </body>
 </html>
