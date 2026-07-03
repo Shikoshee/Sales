@@ -47,29 +47,7 @@
   <title>Sales Report</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 
-  <!-- ============================================================
-     PASTE THIS INTO THE <head> OF EVERY PAGE
-     ============================================================ -->
 
-<!-- PWA Manifest -->
-<link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0f172a">
-
-<!-- Service Worker Registration -->
-<script>
-  if ("serviceWorker" in navigator) {
-    window.addEventListener("load", () => {
-      navigator.serviceWorker
-        .register("./sw.js")
-        .then(reg => console.log("✅ Service Worker registered:", reg.scope))
-        .catch(err => console.error("❌ SW registration failed:", err));
-    });
-  }
-</script>
-
-<!-- ============================================================
-     END OF SNIPPET
-     ============================================================ -->
   <style>
     * { margin:0; padding:0; box-sizing:border-box; }
 
