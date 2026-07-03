@@ -1,6 +1,46 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <!-- ═══════════════════════════════════════════
+     PASTE THIS BLOCK INTO <head> OF EVERY PAGE
+     ═══════════════════════════════════════════ -->
+
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#0f172a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Inventra">
+<link rel="apple-touch-icon" href="./icons/icon-192.png">
+
+<script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", () => {
+      navigator.serviceWorker.register("./sw.js")
+        .then(r => console.log("✅ SW registered:", r.scope))
+        .catch(e => console.error("❌ SW failed:", e));
+    });
+  }
+
+  window.addEventListener("beforeinstallprompt", e => {
+    e.preventDefault();
+    window._installPrompt = e;
+    document.querySelectorAll(".pwa-install-btn").forEach(btn => {
+      btn.style.display = "flex";
+    });
+  });
+
+  window.addEventListener("appinstalled", () => {
+    window._installPrompt = null;
+    document.querySelectorAll(".pwa-install-btn").forEach(btn => {
+      btn.style.display = "none";
+    });
+  });
+</script>
+
+<!-- ═══════════════════════════════════════════
+     END OF HEAD SNIPPET
+     ═══════════════════════════════════════════ -->
   <meta charset="UTF-8">
   <title>Create User (Admin Only) - Inventra</title>
   <!-- ============================================================
@@ -27,6 +67,7 @@
      END OF SNIPPET
      ============================================================ -->
   <style>
+
 
 *{
   margin:0;
