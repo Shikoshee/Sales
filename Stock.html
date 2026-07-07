@@ -474,7 +474,7 @@ async function addProduct() {
     category:       document.getElementById("category").value.trim(),
     details:        document.getElementById("details").value.trim(),
     quantity:       document.getElementById("quantity").value,
-    expiryDate:     document.getElementById("expiryDate").value,
+    expiryDate:     document.getElementById("expiryDate").value || null,
   };
 
   if (!product.productName) {
