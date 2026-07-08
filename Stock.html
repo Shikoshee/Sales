@@ -481,6 +481,10 @@ async function addProduct() {
     alert("Product Name is required!");
     return;
   }
+  if (!expiryDate.expiryDate){
+    alert("Expity Date cannot be empty'
+          return;
+  }
 
   products.push(product);
   renderTable();
