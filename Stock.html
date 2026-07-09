@@ -4,7 +4,6 @@
   <!-- ═══════════════════════════════════════════
      PASTE THIS BLOCK INTO <head> OF EVERY PAGE
      ═══════════════════════════════════════════ -->
-
 <link rel="manifest" href="./manifest.json">
 <meta name="theme-color" content="#0f172a">
 <meta name="mobile-web-app-capable" content="yes">
@@ -12,7 +11,7 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="Inventra">
 <link rel="apple-touch-icon" href="./icons/icon-192.png">
-
+<script src="./modal.js"></script>
 <script>
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", () => {
@@ -21,7 +20,6 @@
         .catch(e => console.error("❌ SW failed:", e));
     });
   }
-
   window.addEventListener("beforeinstallprompt", e => {
     e.preventDefault();
     window._installPrompt = e;
@@ -29,7 +27,6 @@
       btn.style.display = "flex";
     });
   });
-
   window.addEventListener("appinstalled", () => {
     window._installPrompt = null;
     document.querySelectorAll(".pwa-install-btn").forEach(btn => {
@@ -37,7 +34,6 @@
     });
   });
 </script>
-
 <!-- ═══════════════════════════════════════════
      END OF HEAD SNIPPET
      ═══════════════════════════════════════════ -->
@@ -45,21 +41,17 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Stock Taking System</title>
-
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-
     body {
       font-family: Arial, sans-serif;
       background: #f9f9f9;
     }
-
     h1 {
       text-align: center;
       color: #333;
       margin-bottom: 20px;
     }
-
     table {
       width: 100%;
       border-collapse: collapse;
@@ -67,20 +59,15 @@
       background: #fff;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
-
     table, th, td { border: 1px solid #ddd; }
-
     th {
       background: #007BFF;
       color: #fff;
       padding: 10px;
       text-align: center;
     }
-
     td { padding: 8px; text-align: center; }
-
     input, select { padding: 5px; margin: 3px; }
-
     .form-container {
       background: #fff;
       padding: 15px;
@@ -88,7 +75,6 @@
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
       margin-bottom: 15px;
     }
-
     .btn {
       padding: 6px 12px;
       border: none;
@@ -96,13 +82,10 @@
       cursor: pointer;
       margin: 2px;
     }
-
     .btn-add    { background: #28a745; color: #fff; }
     .btn-edit   { background: #ffc107; color: #000; }
     .btn-delete { background: #dc3545; color: #fff; }
-
     .search-bar { margin-top: 20px; text-align: center; }
-
     .search-bar input {
       width: 300px;
       padding: 8px;
@@ -110,29 +93,22 @@
       border-radius: 5px;
       font-size: 1rem;
     }
-
     .btn-container {
       text-align: center;
       margin-top: 15px;
       margin-bottom: 15px;
     }
-
     .top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
       margin: 20px 0;
     }
-
     .top-bar input, .top-bar select { padding: 8px; font-size: 1rem; }
-
     .sort-bar label { margin-right: 8px; font-weight: bold; }
-
     .weight-group { display: flex; gap: 8px; margin: 3px; }
     .weight-group input, .weight-group select { flex: 1; }
-
     .hidden { display: none; }
-
     /* ── Sidebar ── */
     .sidebar {
       position: fixed;
@@ -150,13 +126,11 @@
       transition: width 0.25s ease;
       overflow: hidden;
     }
-
     .sidebar.active {
       width: 220px;
       align-items: flex-start;
       padding: 16px 12px;
     }
-
     .sidebar-logo {
       width: 36px;
       height: 36px;
@@ -168,7 +142,6 @@
       margin-bottom: 8px;
       flex-shrink: 0;
     }
-
     .sidebar.active .sidebar-logo {
       width: 100%;
       height: auto;
@@ -179,9 +152,7 @@
       padding: 8px 4px;
       margin-bottom: 4px;
     }
-
     .sidebar-logo i { font-size: 20px; color: #60a5fa; }
-
     .sidebar-logo-text {
       display: none;
       font-size: 15px;
@@ -189,9 +160,7 @@
       color: #f1f5f9;
       white-space: nowrap;
     }
-
     .sidebar.active .sidebar-logo-text { display: block; }
-
     .sidebar-divider {
       width: 36px;
       height: 0.5px;
@@ -199,12 +168,10 @@
       margin: 4px 0 8px;
       flex-shrink: 0;
     }
-
     .sidebar.active .sidebar-divider {
       width: calc(100% - 8px);
       margin: 4px 4px 8px;
     }
-
     .sidebar a {
       width: 36px;
       height: 36px;
@@ -218,34 +185,25 @@
       transition: background 0.15s ease, color 0.15s ease;
       gap: 10px;
     }
-
     .sidebar.active a {
       width: 100%;
       height: auto;
       padding: 10px 12px;
       justify-content: flex-start;
     }
-
     .sidebar a i { font-size: 18px; flex-shrink: 0; }
     .sidebar.active a i { font-size: 17px; }
-
     .sidebar a .nav-label {
       display: none;
       font-size: 14px;
       white-space: nowrap;
     }
-
     .sidebar.active a .nav-label { display: block; }
-
     .sidebar a:hover { background: #1e293b; color: #e2e8f0; }
-
     .sidebar a.active-link { background: #1e3a5f; color: #60a5fa; }
-
-    .sidebar a.logout-link { color: #f87171; margin-top: auto; }
+    .sidebar a.logout-link { color: #fa0606; margin-top: auto; }
     .sidebar a.logout-link:hover { background: #2d1a1a; }
-
     .sidebar-spacer { flex: 1; }
-
     .toggle-btn {
       position: fixed;
       top: 14px;
@@ -260,35 +218,28 @@
       z-index: 1002;
       transition: background 0.15s;
     }
-
     .toggle-btn:hover { background: #1e293b; }
-
     /* ── Main content ── */
     .main-content {
       margin-left: 64px;
       padding: 20px;
       transition: margin-left 0.25s ease;
     }
-
     .sidebar.active ~ .main-content { margin-left: 220px; }
   </style>
 </head>
 <body>
-
 <!-- Toggle Button -->
 <button class="toggle-btn" onclick="toggleSidebar()" aria-label="Toggle menu">
   <i class="ti ti-menu-2"></i>
 </button>
-
 <!-- Sidebar -->
 <div class="sidebar" id="sidebar">
   <div class="sidebar-logo">
     <i class="ti ti-package" aria-hidden="true"></i>
     <span class="sidebar-logo-text">Inventra</span>
   </div>
-
   <div class="sidebar-divider"></div>
-
   <a href="admin_dashboard.html">
     <i class="ti ti-home" aria-hidden="true"></i>
     <span class="nav-label">Dashboard</span>
@@ -315,31 +266,25 @@
   </a>
 
   <div class="sidebar-spacer"></div>
-  <div class="sidebar-divider"></div>
-
+  <div class="sidebar-divider"></div> 
   <a href="Home Stock.html" class="logout-link">
     <i class="ti ti-logout" aria-hidden="true"></i>
     <span class="nav-label">Logout</span>
   </a>
 </div>
-
 <!-- Main Content -->
 <div class="main-content">
-
   <h1>Stock Taking System</h1>
-
   <!-- Backup / Restore -->
   <div class="btn-container">
     <button class="btn btn-add" onclick="backupProducts()">🧾 Backup Products</button>
     <button class="btn btn-edit" onclick="document.getElementById('restoreFile').click()">🔁 Restore Products</button>
     <input type="file" id="restoreFile" accept=".json" style="display:none" onchange="restoreProducts(event)">
   </div>
-
   <!-- Add Product Button -->
   <div class="btn-container">
     <button class="btn btn-add" onclick="toggleForm()">➕ Add Product</button>
   </div>
-
   <!-- Add Product Form -->
   <div id="formContainer" class="form-container hidden">
     <input type="text"    id="productName"    placeholder="Product Name">
@@ -361,11 +306,10 @@
     <input type="text"   id="company"    placeholder="Company">
     <input type="text"   id="category"   placeholder="Category">
     <input type="text"   id="details"    placeholder="Details">
-    <input type="number" id="quantity"   placeholder="Quantity">
+    <input type="number" id="quantity"   placeholder="Quantity*">
     <input type="date"   id="expiryDate">
     <button class="btn btn-add" onclick="addProduct()">Add Product</button>
   </div>
-
   <!-- Search + Sort -->
   <div class="top-bar">
     <div class="search-bar">
@@ -381,7 +325,6 @@
       </select>
     </div>
   </div>
-
   <!-- Stock Table -->
   <table id="stockTable">
     <thead>
@@ -402,24 +345,18 @@
     </thead>
     <tbody></tbody>
   </table>
-
   <div class="btn-container" style="margin-top:15px;">
     <button class="btn btn-add" onclick="proceedToSell()">Proceed to Sell</button>
   </div>
-
 </div>
 <!-- End .main-content -->
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
-
 let products = [];
-
 const supabaseUrl = "https://quhorqxtzhpuxeujgxfw.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1aG9ycXh0emhwdXhldWpneGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNTI2NzgsImV4cCI6MjA5NTYyODY3OH0._bldtcFHB59obsAsxC7ctKn-EqoQqKnwLTXowo2ppF8";
 
 window.supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
-
 // ── Render Table ──
 function renderTable(list = products) {
   const tbody = document.querySelector("#stockTable tbody");
@@ -446,7 +383,6 @@ function renderTable(list = products) {
   });
   localStorage.setItem("products", JSON.stringify(products));
 }
-
 // ── Proceed to Sell ──
 function proceedToSell() {
   const selected = [];
@@ -460,31 +396,39 @@ function proceedToSell() {
   localStorage.setItem("sellIndices", JSON.stringify(selected));
   window.location.href = "Sell.html";
 }
-
+// ── Add Product ──
 // ── Add Product ──
 async function addProduct() {
   const product = {
-    productName:    document.getElementById("productName").value.trim(),
-    buyingPrice:    document.getElementById("buyingPrice").value,
-    wholesalePrice: document.getElementById("wholesalePrice").value,
-    retailPrice:    document.getElementById("retailPrice").value,
-    weight:         document.getElementById("weight").value,
-    weightUnit:     document.getElementById("weightUnit").value,
-    company:        document.getElementById("company").value.trim(),
-    category:       document.getElementById("category").value.trim(),
-    details:        document.getElementById("details").value.trim(),
-    quantity:       document.getElementById("quantity").value,
-    expiryDate:     document.getElementById("expiryDate").value || null,
+    productName: document.getElementById("productName").value.trim(),
+    buyingPrice: document.getElementById("buyingPrice").value.trim(),
+    wholesalePrice: document.getElementById("wholesalePrice").value.trim(),
+    retailPrice: document.getElementById("retailPrice").value.trim(),
+    weight: document.getElementById("weight").value.trim(),
+    weightUnit: document.getElementById("weightUnit").value,
+    company: document.getElementById("company").value.trim(),
+    category: document.getElementById("category").value.trim(),
+    details: document.getElementById("details").value.trim(),
+    quantity: document.getElementById("quantity").value.trim(),
+    expiryDate: document.getElementById("expiryDate").value.trim()
   };
 
-  if (!product.productName) {
-    alert("Product Name is required!");
-    return;
-  }
-  if (!expiryDate.expiryDate){
-    alert("Expity Date cannot be empty'
-          return;
-  }
+  // Validate required fields
+ const missingFields = [];
+
+if (!product.productName) missingFields.push("Product Name");
+if (!product.buyingPrice) missingFields.push("Buying Price");
+if (!product.wholesalePrice) missingFields.push("Wholesale Price");
+if (!product.retailPrice) missingFields.push("Retail Price");
+if (!product.weight) missingFields.push("Weight");
+if (!product.weightUnit) missingFields.push("Weight Unit");
+if (!product.quantity) missingFields.push("Quantity");
+if (!product.expiryDate) missingFields.push("Expiry Date");
+
+if (missingFields.length > 0) {
+  alert("The following fields cannot be empty:\n\n" + missingFields.join("\n"));
+  return;
+}
 
   products.push(product);
   renderTable();
@@ -496,28 +440,22 @@ async function addProduct() {
     await loadProductsFromSupabase();
   }
 }
-
 // ── Clear Form ──
 function clearForm() {
   document.querySelectorAll(".form-container input").forEach(i => i.value = "");
   document.getElementById("weightUnit").value = "";
 }
-
 // ── Delete Product ──
 async function deleteProduct(index) {
   const product = products[index];
   if (!confirm("Are you sure?")) return;
-
   const { error } = await window.supabaseClient
     .from("products")
     .delete()
     .eq("id", product.id);
-
   if (error) { console.error(error); return; }
-
   await loadProductsFromSupabase();
 }
-
 // ── Edit Product ──
 function editProduct(index) {
   const prod = products[index];
@@ -532,21 +470,17 @@ function editProduct(index) {
   document.getElementById("details").value        = prod.details;
   document.getElementById("quantity").value       = prod.quantity;
   document.getElementById("expiryDate").value     = prod.expiryDate;
-
   // Open form so user can see what they're editing
   document.getElementById("formContainer").classList.remove("hidden");
-
   products.splice(index, 1);
   renderTable();
 }
-
 // ── Filter ──
 function filterProducts() {
   const query = document.getElementById("searchInput").value.toLowerCase();
   const filtered = products.filter(p => p.productName.toLowerCase().includes(query));
   renderTable(filtered);
 }
-
 // ── Sort ──
 function sortProducts() {
   const sortType = document.getElementById("sortOption").value;
@@ -559,7 +493,6 @@ function sortProducts() {
   }
   renderTable();
 }
-
 // ── Backup ──
 function backupProducts() {
   if (!products.length) return alert("No products to back up.");
@@ -569,7 +502,6 @@ function backupProducts() {
   a.download = `products_backup_${new Date().toISOString().split("T")[0]}.json`;
   a.click();
 }
-
 // ── Restore ──
 function restoreProducts(event) {
   const file = event.target.files[0];
@@ -592,43 +524,35 @@ function restoreProducts(event) {
   };
   reader.readAsText(file);
 }
-
 // ── Toggle Form ──
 function toggleForm() {
   document.getElementById("formContainer").classList.toggle("hidden");
 }
-
 // ── Toggle Sidebar ──
 function toggleSidebar() {
   document.getElementById("sidebar").classList.toggle("active");
 }
-
 // ── Supabase Sync ──
 function queueProductForSync(product) {
   const pending = JSON.parse(localStorage.getItem("pendingProducts")) || [];
   pending.push(product);
   localStorage.setItem("pendingProducts", JSON.stringify(pending));
 }
-
 async function syncPendingProducts() {
   const pending = JSON.parse(localStorage.getItem("pendingProducts")) || [];
   if (!pending.length) return;
-
   for (const product of pending) {
     const { error } = await window.supabaseClient.from("products").insert(product);
     if (error) { console.error("Sync error:", error); return; }
   }
-
   localStorage.removeItem("pendingProducts");
   console.log("✅ Products synced to Supabase");
 }
-
 function loadProductsFromLocalStorage() {
   const saved = localStorage.getItem("products");
   products = saved ? JSON.parse(saved) : [];
   renderTable();
 }
-
 async function loadProductsFromSupabase() {
   const { data, error } = await window.supabaseClient.from("products").select("*");
   if (error) {
@@ -640,7 +564,6 @@ async function loadProductsFromSupabase() {
   localStorage.setItem("products", JSON.stringify(products));
   renderTable();
 }
-
 function startRealtime() {
   if (window.realtimeChannel) return;
   if (!navigator.onLine) return;
@@ -651,12 +574,10 @@ function startRealtime() {
     )
     .subscribe();
 }
-
 // ── Highlight active nav link ──
 document.querySelectorAll(".sidebar a").forEach(link => {
   if (link.href === window.location.href) link.classList.add("active-link");
 });
-
 // ── Init ──
 document.addEventListener("DOMContentLoaded", async () => {
   if (navigator.onLine) {
@@ -667,13 +588,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     loadProductsFromLocalStorage();
   }
 });
-
 window.addEventListener("online", async () => {
   await syncPendingProducts();
   await loadProductsFromSupabase();
   startRealtime();
 });
-
 </script>
 </body>
 </html>
