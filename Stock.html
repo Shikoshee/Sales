@@ -106,8 +106,30 @@
     }
     .top-bar input, .top-bar select { padding: 8px; font-size: 1rem; }
     .sort-bar label { margin-right: 8px; font-weight: bold; }
-    .weight-group { display: flex; gap: 8px; margin: 3px; }
-    .weight-group input, .weight-group select { flex: 1; }
+    .weight-group {
+  display: flex;
+  align-items: stretch;
+  width: 100%;
+  margin: 3px 0;
+}
+
+.weight-group input {
+  flex: 1;
+  margin: 0;
+  border: 1px solid #ccc;
+  border-right: none;
+  border-radius: 5px 0 0 5px;
+  padding: 8px;
+}
+
+.weight-group select {
+  width: 120px;
+  margin: 0;
+  border: 1px solid #ccc;
+  border-radius: 0 5px 5px 0;
+  padding: 8px;
+  background: white;
+}
     .hidden { display: none; }
     /* ── Sidebar ── */
     .sidebar {
@@ -306,7 +328,7 @@
     <input type="text"   id="company"    placeholder="Company">
     <input type="text"   id="category"   placeholder="Category">
     <input type="text"   id="details"    placeholder="Details">
-    <input type="number" id="quantity"   placeholder="Quantity*">
+    <input type="number" id="quantity"   placeholder="Quantity">
     <input type="date"   id="expiryDate">
     <button class="btn btn-add" onclick="addProduct()">Add Product</button>
   </div>
@@ -353,6 +375,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script>
 let products = [];
+let editingProductId = null;
 const supabaseUrl = "https://quhorqxtzhpuxeujgxfw.supabase.co";
 const supabaseKey = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InF1aG9ycXh0emhwdXhldWpneGZ3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODAwNTI2NzgsImV4cCI6MjA5NTYyODY3OH0._bldtcFHB59obsAsxC7ctKn-EqoQqKnwLTXowo2ppF8";
 
@@ -430,15 +453,33 @@ if (missingFields.length > 0) {
   return;
 }
 
-  products.push(product);
-  renderTable();
-  clearForm();
-  queueProductForSync(product);
+  if (editingProductId) {
 
-  if (navigator.onLine) {
-    await syncPendingProducts();
-    await loadProductsFromSupabase();
+  product.id = editingProductId;
+
+  const index = products.findIndex(p => p.id === editingProductId);
+
+  if(index !== -1){
+    products[index] = product;
   }
+
+  await updateProduct(product);
+
+  editingProductId = null;
+
+} else {
+
+  products.push(product);
+  await saveProduct(product);
+
+}
+
+renderTable();
+clearForm();
+
+if(navigator.onLine){
+  await loadProductsFromSupabase();
+}
 }
 // ── Clear Form ──
 function clearForm() {
@@ -446,34 +487,87 @@ function clearForm() {
   document.getElementById("weightUnit").value = "";
 }
 // ── Delete Product ──
-async function deleteProduct(index) {
-  const product = products[index];
-  if (!confirm("Are you sure?")) return;
-  const { error } = await window.supabaseClient
-    .from("products")
-    .delete()
-    .eq("id", product.id);
-  if (error) { console.error(error); return; }
-  await loadProductsFromSupabase();
+async function deleteProduct(index){
+
+const product = products[index];
+
+
+if(!confirm("Are you sure?")) return;
+
+
+
+if(product.id){
+
+const {error}=await window.supabaseClient
+.from("products")
+.delete()
+.eq("id",product.id);
+
+
+if(error){
+console.error(error);
+return;
+}
+
+}
+
+
+products.splice(index,1);
+
+
+localStorage.setItem(
+"products",
+JSON.stringify(products)
+);
+
+
+renderTable();
+
+}
+async function updateProduct(product){
+
+const {error}=await window.supabaseClient
+.from("products")
+.update(product)
+.eq("id",product.id);
+
+
+if(error){
+console.error("Update error:",error);
+return;
+}
+
+
+localStorage.setItem(
+"products",
+JSON.stringify(products)
+);
+
 }
 // ── Edit Product ──
-function editProduct(index) {
-  const prod = products[index];
-  document.getElementById("productName").value    = prod.productName;
-  document.getElementById("buyingPrice").value    = prod.buyingPrice;
-  document.getElementById("wholesalePrice").value = prod.wholesalePrice;
-  document.getElementById("retailPrice").value    = prod.retailPrice;
-  document.getElementById("weight").value         = prod.weight;
-  document.getElementById("weightUnit").value     = prod.weightUnit || "";
-  document.getElementById("company").value        = prod.company;
-  document.getElementById("category").value       = prod.category;
-  document.getElementById("details").value        = prod.details;
-  document.getElementById("quantity").value       = prod.quantity;
-  document.getElementById("expiryDate").value     = prod.expiryDate;
-  // Open form so user can see what they're editing
-  document.getElementById("formContainer").classList.remove("hidden");
-  products.splice(index, 1);
-  renderTable();
+function editProduct(index){
+
+const prod = products[index];
+
+editingProductId = prod.id;
+
+
+document.getElementById("productName").value = prod.productName;
+document.getElementById("buyingPrice").value = prod.buyingPrice;
+document.getElementById("wholesalePrice").value = prod.wholesalePrice;
+document.getElementById("retailPrice").value = prod.retailPrice;
+document.getElementById("weight").value = prod.weight;
+document.getElementById("weightUnit").value = prod.weightUnit || "";
+document.getElementById("company").value = prod.company;
+document.getElementById("category").value = prod.category;
+document.getElementById("details").value = prod.details;
+document.getElementById("quantity").value = prod.quantity;
+document.getElementById("expiryDate").value = prod.expiryDate;
+
+
+document.getElementById("formContainer")
+.classList.remove("hidden");
+
 }
 // ── Filter ──
 function filterProducts() {
@@ -533,20 +627,70 @@ function toggleSidebar() {
   document.getElementById("sidebar").classList.toggle("active");
 }
 // ── Supabase Sync ──
-function queueProductForSync(product) {
-  const pending = JSON.parse(localStorage.getItem("pendingProducts")) || [];
-  pending.push(product);
-  localStorage.setItem("pendingProducts", JSON.stringify(pending));
+async function saveProduct(product){
+
+  const {data,error} = await window.supabaseClient
+    .from("products")
+    .insert(product)
+    .select()
+    .single();
+
+
+  if(error){
+
+    console.error(error);
+
+    if(error.code === "23505"){
+      alert("Product already exists");
+    }
+
+    return;
+  }
+
+
+  // replace local temporary product with Supabase product including id
+
+  const index = products.findIndex(
+    p => p.productName === product.productName
+  );
+
+  if(index !== -1){
+    products[index] = data;
+    localStorage.setItem(
+      "products",
+      JSON.stringify(products)
+    );
+  }
+
 }
 async function syncPendingProducts() {
   const pending = JSON.parse(localStorage.getItem("pendingProducts")) || [];
   if (!pending.length) return;
+
+  const stillPending = [];
+
   for (const product of pending) {
-    const { error } = await window.supabaseClient.from("products").insert(product);
-    if (error) { console.error("Sync error:", error); return; }
+    const { error } = await window.supabaseClient
+      .from("products")
+      .insert(product);
+
+    if (error) {
+      console.error("Sync error:", error);
+
+      // Keep only failed products
+      stillPending.push(product);
+      continue;
+    }
   }
-  localStorage.removeItem("pendingProducts");
-  console.log("✅ Products synced to Supabase");
+
+  localStorage.setItem(
+    "pendingProducts",
+    JSON.stringify(stillPending)
+  );
+
+  console.log(
+    `Synced ${pending.length - stillPending.length} products.`
+  );
 }
 function loadProductsFromLocalStorage() {
   const saved = localStorage.getItem("products");
